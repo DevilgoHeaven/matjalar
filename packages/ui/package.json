@@ -1,0 +1,34 @@
+{
+  "name": "@mzr/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "디자인 토큰 + shadcn primitives (apps/web 에서 import)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./tokens/*": "./src/tokens/*.ts",
+    "./components/*": "./src/components/*.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@mzr/config": "workspace:*",
+    "@types/react": "^19.0.2",
+    "react": "19.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0",
+    "tailwindcss": ">=3.4.0"
+  }
+}
