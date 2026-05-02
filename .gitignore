@@ -1,0 +1,51 @@
+# 의존성
+node_modules/
+.pnpm-store/
+
+# 빌드 산출물
+.next/
+.turbo/
+dist/
+build/
+out/
+coverage/
+
+# 환경 변수 (반드시 커밋 금지 — service_role 키 누출 방지)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development.local
+
+# Supabase 로컬 산출물
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Vercel
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# 로그·임시
+*.log
+*.tsbuildinfo
+.cache/
+.eslintcache
+.turbo
+
+# 테스트
+coverage/
+.nyc_output/
+
+# 기타 — claude/agent 작업 산출물 (C:\workspace\맛잘알/.omc는 commit 안 함)
+.omc/
