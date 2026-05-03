@@ -9,6 +9,7 @@
 
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 
 export const metadata: Metadata = {
   title: '맛잘알 — 프랜차이즈 꿀조합 위키',
@@ -37,8 +38,8 @@ export default function RootLayout({
   return (
     <html lang="ko-KR">
       <body>
-        {/* TODO: Stage 3 — AuthModalProvider 로 감싸기 */}
-        {children}
+        {/* AuthModalProvider — Context + sessionStorage descriptor + onAuthStateChange */}
+        <AuthModalProvider>{children}</AuthModalProvider>
       </body>
     </html>
   );
