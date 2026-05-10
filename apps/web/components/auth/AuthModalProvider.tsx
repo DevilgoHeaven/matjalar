@@ -188,6 +188,9 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         provider,
         options: {
           redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          ...(provider === 'kakao'
+            ? { scopes: 'profile_nickname profile_image' }
+            : {}),
         },
       });
       if (error) {

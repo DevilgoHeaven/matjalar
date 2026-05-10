@@ -25,8 +25,13 @@ export type CategoryToken = {
   label: string;
   /** 카테고리 식별 이모지 */
   emoji: string;
-  /** 파스텔 배경색 (hex) */
+  /** 파스텔 배경색 (hex) — 단색 사용처 backward-compat */
   color: string;
+  /**
+   * 그라디언트 2색 [start, end] — CSS `linear-gradient(135deg, ...)` 입력용
+   * (plan §18.4.1 — Agent D 권장: 카드 배경 시각 차별화. R-14 이미지 금지 준수)
+   */
+  gradient: readonly [string, string];
   /** v1 활성 여부 — false 면 "준비중" 배지 표시 */
   active: boolean;
 };
@@ -43,6 +48,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '패스트푸드',
     emoji: '🍔',
     color: '#FFE5D9',
+    gradient: ['#FFE5D9', '#FFCDB2'] as const,
     active: true,
   },
   cafedessert: {
@@ -50,6 +56,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '카페·디저트',
     emoji: '☕',
     color: '#F4E4FF',
+    gradient: ['#F4E4FF', '#E0CCFF'] as const,
     active: false,
   },
   chicken: {
@@ -57,6 +64,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '치킨',
     emoji: '🍗',
     color: '#FFF1B8',
+    gradient: ['#FFF1B8', '#FFE38A'] as const,
     active: false,
   },
   pizza: {
@@ -64,6 +72,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '피자',
     emoji: '🍕',
     color: '#FFD6CC',
+    gradient: ['#FFD6CC', '#FFB8A6'] as const,
     active: false,
   },
   bunsik: {
@@ -71,6 +80,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '분식',
     emoji: '🍜',
     color: '#FFE0E0',
+    gradient: ['#FFE0E0', '#FFC2C2'] as const,
     active: false,
   },
   buffet: {
@@ -78,6 +88,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '뷔페',
     emoji: '🍽️',
     color: '#E0F4E0',
+    gradient: ['#E0F4E0', '#C2E8C2'] as const,
     active: false,
   },
   cvs: {
@@ -85,6 +96,7 @@ export const CATEGORY_TOKENS: Readonly<Record<CategoryKey, CategoryToken>> = {
     label: '편의점',
     emoji: '🏪',
     color: '#D9F0FF',
+    gradient: ['#D9F0FF', '#B5E0FF'] as const,
     active: false,
   },
 } as const;

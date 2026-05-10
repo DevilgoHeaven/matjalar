@@ -933,6 +933,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_app_user_self: { Args: never; Returns: undefined }
       pgroonga_command:
         | { Args: { groongacommand: string }; Returns: string }
         | {
@@ -1358,6 +1359,7 @@ export type Database = {
       pgroonga_wal_truncate:
         | { Args: never; Returns: number }
         | { Args: { indexname: unknown }; Returns: number }
+      set_admin_claim: { Args: { event: Json }; Returns: Json }
       update_combo_stats: {
         Args: { p_combo: string; p_delta: number; p_kind: string }
         Returns: undefined
