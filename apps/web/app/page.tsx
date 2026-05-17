@@ -30,7 +30,10 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolved = await searchParams;
   const authError = getFirstParam(resolved?.auth_error);
-  const adminError = getFirstParam(resolved?.error);
+  const adminErrorKey = getFirstParam(resolved?.error);
+  const adminErrorMessage = adminErrorKey
+    ? mapAdminErrorMessage(adminErrorKey)
+    : null;
 
   const data = await getHomePageData();
 
@@ -73,7 +76,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </header>
 
-      {(authError || adminError) && (
+      {(authError || adminErrorMessage) && (
         <section className="mx-auto max-w-3xl px-5 pt-4">
           <div
             role="alert"
@@ -81,13 +84,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           >
             {authError ? (
               <>
-                <span className="block">OAuth 로그인 실패</span>
+                <span className="block">로그인을 끝까지 마치지 못했어요</span>
                 <span className="mt-1 block break-words text-xs font-medium text-red-600">
                   {authError}
                 </span>
               </>
             ) : (
-              <span>{adminError}</span>
+              <span className="block break-keep">{adminErrorMessage}</span>
             )}
           </div>
         </section>
@@ -196,14 +199,31 @@ function CategoryTile({ category }: { category: HomeCategory }) {
 function EmptyHotState() {
   return (
     <div className="rounded-lg border border-dashed border-stone-300 bg-white p-6 text-center">
-      <p className="text-base font-bold text-action">
+      <p className="break-keep text-base font-bold text-action">
         오늘의 인기 조합이 준비되는 중이에요 ✨
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-stone-500">
+      <p className="mt-2 break-keep text-sm leading-relaxed text-stone-500">
         첫 조합이 등록되면 이곳에 표시됩니다.
       </p>
     </div>
   );
+}
+
+/**
+ * middleware / OAuth callback 이 ?error=<key> 로 리디렉트할 때 사용자에게 보여줄 한글 메시지.
+ * 알 수 없는 key 는 fallback 으로 일반 안내. raw key 노출 방지 (UX 갭 #2).
+ */
+function mapAdminErrorMessage(key: string): string {
+  switch (key) {
+    case 'admin_login_required':
+      return '관리자 페이지는 로그인 후 이용할 수 있어요.';
+    case 'admin_only':
+      return '관리자 계정에만 열려 있는 페이지예요.';
+    case 'missing_code':
+      return '로그인 인증 코드가 누락됐어요. 다시 시도해 주세요.';
+    default:
+      return '잠깐 막힌 곳이 있어요. 잠시 후 다시 시도해 주세요.';
+  }
 }
 
 function getFirstParam(value: string | string[] | undefined): string | null {

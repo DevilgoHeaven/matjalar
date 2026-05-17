@@ -289,7 +289,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
                 onClick={() => void startOAuth('google')}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-action hover:bg-gray-50"
               >
-                Google 로 시작하기
+                Google로 시작하기
               </button>
             </div>
 
