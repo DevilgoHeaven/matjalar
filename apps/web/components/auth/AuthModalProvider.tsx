@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ActionDescriptor } from './types';
 import { dispatchPendingAction } from './action-dispatcher';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -63,11 +64,13 @@ const STORAGE_KEY = 'mzr_pending';
  * - login_modal_open / login_completed events 기록
  */
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<ActionDescriptor | null>(null);
 
   // Stale closure 회피용 ref — useEffect 콜백이 최신 pendingAction 을 읽도록
   const pendingActionRef = useRef<ActionDescriptor | null>(null);
+  const isDispatchingPendingRef = useRef(false);
 
   // Supabase 클라이언트 — 모듈 레벨 싱글턴 보장 위해 lazy useState 사용 (StrictMode 안전)
   const [supabase] = useState(() => getSupabaseBrowserClient());
@@ -91,6 +94,68 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const clearStoredPendingAction = useCallback(() => {
+    setPendingAction(null);
+    pendingActionRef.current = null;
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* noop */
+      }
+    }
+  }, []);
+
+  const runPendingAction = useCallback(
+    async (descriptor: ActionDescriptor) => {
+      if (isDispatchingPendingRef.current) return;
+
+      isDispatchingPendingRef.current = true;
+      try {
+        const result = await dispatchPendingAction(descriptor);
+
+        if (result.ok) {
+          clearStoredPendingAction();
+          if (result.redirectTo && typeof window !== 'undefined') {
+            window.location.assign(result.redirectTo);
+          } else if (result.refresh) {
+            router.refresh();
+          }
+        } else {
+          console.error('[mzr:auth] dispatch 실패:', result.error);
+        }
+      } finally {
+        isDispatchingPendingRef.current = false;
+      }
+    },
+    [clearStoredPendingAction, router]
+  );
+
+  /**
+   * OAuth callback 뒤 새 문서로 로드되면 SIGNED_IN 이벤트가 이미 지나간 상태일 수 있다.
+   * sessionStorage 에 pendingAction 이 남아 있고 현재 세션이 있으면 한 번 재개한다.
+   */
+  useEffect(() => {
+    if (!pendingAction) return;
+
+    let cancelled = false;
+    const resumePendingAction = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session || cancelled) return;
+
+      setIsOpen(false);
+      await runPendingAction(pendingAction);
+    };
+
+    void resumePendingAction();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingAction, runPendingAction, supabase]);
+
   /** Supabase 인증 상태 변화 구독 — pendingAction 자동 실행 */
   useEffect(() => {
     const {
@@ -111,33 +176,14 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
       const descriptor = pendingActionRef.current;
       if (!descriptor) return;
 
-      const result = await dispatchPendingAction(descriptor);
-
-      if (result.ok) {
-        // 성공 시 descriptor 제거 (재실행 방지)
-        setPendingAction(null);
-        if (typeof window !== 'undefined') {
-          try {
-            sessionStorage.removeItem(STORAGE_KEY);
-          } catch {
-            /* noop */
-          }
-        }
-        // 페이지 이동 필요한 액션 (예: comboNew)
-        if (result.redirectTo && typeof window !== 'undefined') {
-          window.location.assign(result.redirectTo);
-        }
-      } else {
-        // 실패 시 사용자에게 알림 — v1 은 console 로 (Toast 컴포넌트는 v1.5)
-        console.error('[mzr:auth] dispatch 실패:', result.error);
-      }
+      await runPendingAction(descriptor);
     });
 
     // 컴포넌트 언마운트 시 구독 해제
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [runPendingAction, supabase]);
 
   /**
    * 비회원 인터랙션 진입점.
@@ -159,13 +205,16 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         ? 'bookmark'
         : descriptor.type === 'vote'
           ? 'vote'
-          : descriptor.type === 'reviewSubmit'
+          : descriptor.type === 'reviewSubmit' || descriptor.type === 'reviewVote'
             ? 'review'
             : 'register';
     void trackEvent({
       type: 'login_modal_open',
       action_type: actionType,
-      ...(descriptor.type === 'bookmark' || descriptor.type === 'vote'
+      ...(descriptor.type === 'bookmark' ||
+      descriptor.type === 'vote' ||
+      descriptor.type === 'reviewSubmit' ||
+      descriptor.type === 'reviewVote'
         ? { combo_id: descriptor.comboId }
         : {}),
     });
@@ -188,8 +237,11 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         provider,
         options: {
           redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          // 카카오 비즈앱 전환 + 동의항목 검수 완료 가정.
+          // profile_nickname / profile_image: 필수, account_email: 선택 (사용자 거부 시 NULL)
+          // 검수 전이면 카카오가 account_email 을 무시하므로 안전 (NULL 로 INSERT)
           ...(provider === 'kakao'
-            ? { scopes: 'profile_nickname profile_image' }
+            ? { scopes: 'profile_nickname profile_image account_email' }
             : {}),
         },
       });
