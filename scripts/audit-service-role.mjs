@@ -3,6 +3,8 @@
  * service_role 키 누출 검사 (R-04 완화)
  *
  * 빌드 후 클라이언트 청크에 'SERVICE_ROLE' 또는 'service_role' 문자열이 등장하면 실패.
+ * 단, @supabase/auth-js 가 클라이언트 번들에 포함하는 주석형 경고 문구는
+ * 실제 키·환경변수 노출이 아니므로 알려진 safe snippet 으로 제외한다.
  *
  * 사용법:
  *   pnpm build
@@ -22,6 +24,10 @@ const CLIENT_DIRS = [
   'apps/web/.next/server/app', // page.client.* 만 검사
 ];
 const FORBIDDEN = /SERVICE_ROLE|service_role/;
+const KNOWN_SAFE_SNIPPETS = [
+  'Never expose your `service_role` key in the browser.',
+  'Requires a `service_role` key.',
+];
 
 /**
  * 디렉터리를 재귀 순회하며 .js / .mjs / .json 파일 경로를 yield
@@ -56,7 +62,13 @@ for (const dir of CLIENT_DIRS) {
       continue;
     }
     const content = await readFile(file, 'utf8');
-    if (FORBIDDEN.test(content)) {
+    const suspiciousLines = content
+      .split(/\r?\n/)
+      .filter((line) => FORBIDDEN.test(line))
+      .filter(
+        (line) => !KNOWN_SAFE_SNIPPETS.some((snippet) => line.includes(snippet))
+      );
+    if (suspiciousLines.length > 0) {
       leakCount++;
       leakedFiles.push(file);
     }

@@ -18,3 +18,6 @@ export const ratingSchema = z
   .min(1, '최소 1점')
   .max(5, '최대 5점')
   .multipleOf(0.1);
+
+/** Supabase/Postgres UUID 문자열 */
+export const uuidSchema = z.string().uuid('올바른 UUID가 아닙니다');

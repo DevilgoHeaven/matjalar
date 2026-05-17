@@ -35,6 +35,6 @@ export default [
     },
   },
   {
-    ignores: ['.next/**', 'node_modules/**', 'public/sw.js'],
+    ignores: ['.next/**', 'node_modules/**', 'public/sw.js', 'next-env.d.ts'],
   },
 ];

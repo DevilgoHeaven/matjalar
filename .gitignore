@@ -9,6 +9,8 @@ dist/
 build/
 out/
 coverage/
+apps/web/public/sw.js
+apps/web/public/swe-worker-*.js
 
 # 환경 변수 (반드시 커밋 금지 — service_role 키 누출 방지)
 .env
@@ -16,6 +18,7 @@ coverage/
 .env.*.local
 .env.production
 .env.development.local
+키값.txt
 
 # Supabase 로컬 산출물
 supabase/.branches/

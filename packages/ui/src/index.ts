@@ -7,4 +7,3 @@ export { cn } from './lib/cn';
 export { Badge } from './components/Badge';
 export { CategoryChip } from './components/CategoryChip';
 // export { ComboCard } from './components/ComboCard';  // Stage 3
-// export { ReceiptBox } from './components/ReceiptBox';  // Stage 3

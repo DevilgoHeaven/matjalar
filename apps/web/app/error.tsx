@@ -12,6 +12,7 @@
  */
 
 import { useEffect } from 'react';
+import { trackEvent } from '@/lib/analytics/events';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -20,9 +21,13 @@ interface ErrorProps {
 
 export default function GlobalError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // R-17: events 테이블 client_error sink (M8 에서 정식, 현재는 console)
-    // 운영 환경에선 Vercel/Supabase 로그에서도 동일 에러 확인 가능
     console.error('[GlobalError]', error.digest ?? '(no-digest)', error);
+    void trackEvent({
+      type: 'client_error',
+      message: error.message,
+      stack: error.stack,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
   }, [error]);
 
   return (

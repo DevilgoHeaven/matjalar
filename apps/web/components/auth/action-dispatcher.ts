@@ -12,7 +12,7 @@ import type { ActionDescriptor } from './types';
 
 /** 매퍼 결과 타입 */
 export type DispatchResult =
-  | { ok: true; redirectTo?: string }
+  | { ok: true; redirectTo?: string; refresh?: boolean }
   | { ok: false; error: string };
 
 /**
@@ -27,20 +27,36 @@ export async function dispatchPendingAction(
   try {
     switch (descriptor.type) {
       case 'bookmark': {
-        // M4 에서 toggleBookmark 연결
-        // const { toggleBookmark } = await import('@/app/actions/bookmarks');
-        // await toggleBookmark(descriptor.comboId);
-        return { ok: true };
+        const { toggleBookmark } = await import('@/app/actions/bookmarks');
+        const result = await toggleBookmark(descriptor.comboId);
+        return result.ok
+          ? { ok: true, refresh: true }
+          : { ok: false, error: result.error };
       }
       case 'vote': {
-        // M3 에서 toggleVote 연결
-        // const { toggleVote } = await import('@/app/actions/votes');
-        // await toggleVote(descriptor.comboId);
-        return { ok: true };
+        const { toggleVote } = await import('@/app/actions/votes');
+        const result = await toggleVote(descriptor.comboId);
+        return result.ok
+          ? { ok: true, refresh: true }
+          : { ok: false, error: result.error };
       }
       case 'reviewSubmit': {
-        // M4 에서 addReview 연결
-        return { ok: true };
+        const { submitReview } = await import('@/app/actions/reviews');
+        const result = await submitReview({
+          comboId: descriptor.comboId,
+          rating: descriptor.rating,
+          content: descriptor.content,
+        });
+        return result.ok
+          ? { ok: true, refresh: true }
+          : { ok: false, error: result.error };
+      }
+      case 'reviewVote': {
+        const { toggleReviewVote } = await import('@/app/actions/review-votes');
+        const result = await toggleReviewVote(descriptor.reviewId);
+        return result.ok
+          ? { ok: true, refresh: true }
+          : { ok: false, error: result.error };
       }
       case 'comboNew': {
         // 페이지 이동만 — descriptor 만 있으면 redirect

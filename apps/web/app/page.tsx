@@ -10,6 +10,7 @@
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { ensureAppUserExists } from '@/lib/auth/ensure-app-user';
+import { PageEvents } from '@/components/analytics/PageEvents';
 import { LoginButtons } from './_components/login-buttons';
 import { SignedInPanel } from './_components/signed-in-panel';
 
@@ -49,6 +50,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
+      <PageEvents
+        events={[
+          { type: 'page_view', pathname: '/' },
+          { type: 'list_view', list_kind: 'home', count: 0 },
+        ]}
+      />
       <h1 className="text-2xl font-bold">맛잘알</h1>
       <p className="mt-2 text-sm text-gray-600">
         프랜차이즈 메뉴와 꿀조합 위키. 곧 만나요.
