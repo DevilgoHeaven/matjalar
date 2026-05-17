@@ -3,9 +3,14 @@ import type { BrandListCombo } from '@/app/brand/[slug]/data';
 
 interface ComboCardProps {
   combo: BrandListCombo;
+  /**
+   * 여러 브랜드 카드가 한 리스트에 섞일 때 (예: 카테고리 홈) 브랜드 라벨 표시.
+   * brand/[slug] 페이지에서는 브랜드 컨텍스트가 이미 있으므로 생략.
+   */
+  brand?: { name: string };
 }
 
-export function ComboCard({ combo }: ComboCardProps) {
+export function ComboCard({ combo, brand }: ComboCardProps) {
   return (
     <Link
       href={`/combo/${combo.id}`}
@@ -13,6 +18,11 @@ export function ComboCard({ combo }: ComboCardProps) {
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
+          {brand ? (
+            <p className="mb-1 text-[11px] font-bold tracking-wide text-stone-500">
+              {brand.name}
+            </p>
+          ) : null}
           <h2 className="text-base font-extrabold leading-snug text-action">
             {combo.title}
           </h2>
