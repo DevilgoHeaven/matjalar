@@ -34,13 +34,20 @@ export async function middleware(request: NextRequest) {
   const supabase = createServerClient(url, anon, {
     cookies: {
       getAll: () => request.cookies.getAll(),
-      setAll: (toSet: CookieToSet[]) => {
+      // v0.10 시그니처: 2번째 인자 headers — CDN 캐시 차단용
+      // (Cache-Control: private,no-cache,no-store,must-revalidate,max-age=0 / Expires:0 / Pragma:no-cache)
+      // middleware 는 NextResponse 를 직접 만들므로 응답 헤더에 적용 가능.
+      setAll: (toSet: CookieToSet[], headers: Record<string, string>) => {
         // 쿠키 갱신은 request 와 response 양쪽에 동기화
         toSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         toSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options)
         );
+        // CDN 인증 응답 캐싱 방지 — Supabase 권장 헤더 그대로 적용
+        for (const [headerName, headerValue] of Object.entries(headers)) {
+          response.headers.set(headerName, headerValue);
+        }
       },
     },
   });

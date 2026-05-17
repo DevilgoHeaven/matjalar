@@ -1,0 +1,77 @@
+# 맛잘알 — CI 워크플로
+#
+# PR / main push 시 PR 차단 게이트.
+# - typecheck (TS strict 통과)
+# - lint (ESLint no-img, no-restricted-imports 룰 포함)
+# - test (vitest @mzr/db + node:test scripts)
+# - audit (--audit-level=high) — 워닝만, PR 차단 X (1인 개발자 false-positive 회피)
+#
+# Node 20 + pnpm 10.33.2 핀 (lefthook.yml, package.json packageManager 와 일관)
+# Ubuntu (Windows pnpm cache 안정성 이슈 회피).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck + Lint + Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+  audit:
+    name: Security audit (high)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit
+        run: pnpm audit --audit-level=high

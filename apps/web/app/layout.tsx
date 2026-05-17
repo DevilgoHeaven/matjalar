@@ -10,6 +10,8 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
+import { ClientErrorSink } from '@/components/analytics/ClientErrorSink';
+import { SiteFooter } from '@/components/legal/SiteFooter';
 
 export const metadata: Metadata = {
   title: '맛잘알 — 프랜차이즈 꿀조합 위키',
@@ -38,8 +40,11 @@ export default function RootLayout({
   return (
     <html lang="ko-KR">
       <body>
+        {/* R-17 — window.onerror / unhandledrejection 글로벌 sink (트리 최상단) */}
+        <ClientErrorSink />
         {/* AuthModalProvider — Context + sessionStorage descriptor + onAuthStateChange */}
         <AuthModalProvider>{children}</AuthModalProvider>
+        <SiteFooter />
       </body>
     </html>
   );

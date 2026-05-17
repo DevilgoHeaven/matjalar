@@ -1,0 +1,91 @@
+# 맛잘알 — Supabase DB 일일 백업
+#
+# WHY: Supabase Free tier 는 자동 백업이 없다 (Agent C / supabase.com/pricing).
+# 매일 KST 04:00 (UTC 19:00) 에 pg_dump 로 schema+data 를 떠서 GitHub Actions artifact 로 7일 보존.
+# catalog-crawl 워크플로(KST 03:00) 직후 시점이므로 그날 카탈로그 변경 반영 후 백업.
+#
+# Secrets (사용자 책임):
+#  - SUPABASE_DB_URL — Supabase Dashboard > Project Settings > Database > Connection string (URI / direct)
+#                      포맷: postgresql://postgres.<ref>:<password>@<region>.pooler.supabase.com:6543/postgres
+#                      ※ pgbouncer 가 아닌 direct(:5432) URL 권장 (pg_dump 호환성)
+#  - DISCORD_WEBHOOK_URL — (선택) 백업 실패 시 알림
+#
+# 복원 절차 (수동):
+#   gunzip < backup-YYYY-MM-DD.sql.gz | psql "$SUPABASE_DB_URL"
+
+name: DB Backup (daily)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 매일 KST 04:00 = UTC 19:00 (catalog-crawl 직후 1시간 뒤)
+    - cron: '0 19 * * *'
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: pg_dump → artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install postgresql-client
+        # Supabase DB 는 Postgres 17. apt 의 postgresql-client-common 은 14 까지만 — PPA 추가 필요.
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Dump database (schema + data)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::SUPABASE_DB_URL secret 미설정. 백업 중단."
+            exit 1
+          fi
+          DATE=$(date -u +%Y-%m-%d)
+          # --no-owner / --no-privileges: Supabase 가 자체 role 을 관리하므로 owner 정보 제외 시 다른 프로젝트로도 복원 가능
+          pg_dump --no-owner --no-privileges --clean --if-exists \
+            "$SUPABASE_DB_URL" | gzip -9 > "backup-${DATE}.sql.gz"
+          echo "BACKUP_SIZE=$(du -h backup-${DATE}.sql.gz | cut -f1)" >> $GITHUB_ENV
+          echo "BACKUP_DATE=${DATE}" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ env.BACKUP_DATE }}-${{ github.run_id }}
+          path: backup-*.sql.gz
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Discord notify (failure)
+        if: failure() && env.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -fsS -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"⚠️ DB 백업 실패 — run ${GITHUB_RUN_ID}\\n${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" \
+            "$DISCORD_WEBHOOK_URL" || true
+
+      - name: Discord notify (success)
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL 미설정 — 알림 생략"
+            exit 0
+          fi
+          curl -fsS -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"✅ DB 백업 성공 — ${BACKUP_DATE} (${BACKUP_SIZE})\"}" \
+            "$DISCORD_WEBHOOK_URL" || true

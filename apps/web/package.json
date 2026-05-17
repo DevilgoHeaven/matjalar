@@ -5,7 +5,7 @@
   "description": "맛잘알 메인 웹 앱 (Next.js 15.5.18+ PWA, /admin 라우트 포함, CVE-2025-66478/CVE-2026-27978 패치)",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node ../../scripts/clean-serwist-output.mjs && next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -b --noEmit"
@@ -13,8 +13,8 @@
   "dependencies": {
     "@mzr/db": "workspace:*",
     "@mzr/ui": "workspace:*",
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.46.1",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.3",
     "next": "15.5.18",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -28,13 +28,13 @@
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.17.0",
+    "eslint": "9.17.0",
     "eslint-config-next": "15.5.18",
     "eslint-plugin-react": "7.37.2",
     "eslint-plugin-react-hooks": "5.0.0",
     "postcss": "^8.4.49",
     "serwist": "^9.0.10",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.6.3"
+    "typescript": "5.7.3"
   }
 }
