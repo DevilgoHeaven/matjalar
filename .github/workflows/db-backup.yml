@@ -1,6 +1,6 @@
 # 맛잘알 — Supabase DB 일일 백업
 #
-# WHY: Supabase Free tier 는 자동 백업이 없다 (Agent C / supabase.com/pricing).
+# WHY: Supabase 자체 백업과 별개로 프로젝트 외부 복구 사본을 유지한다.
 # 매일 KST 04:00 (UTC 19:00) 에 pg_dump 로 schema+data 를 떠서 GitHub Actions artifact 로 7일 보존.
 # catalog-crawl 워크플로(KST 03:00) 직후 시점이므로 그날 카탈로그 변경 반영 후 백업.
 #
@@ -30,6 +30,8 @@ jobs:
     name: pg_dump → artifact
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
     permissions:
       contents: read
     steps:
@@ -70,8 +72,6 @@ jobs:
 
       - name: Discord notify (failure)
         if: failure() && env.DISCORD_WEBHOOK_URL != ''
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           curl -fsS -X POST -H "Content-Type: application/json" \
             -d "{\"content\":\"⚠️ DB 백업 실패 — run ${GITHUB_RUN_ID}\\n${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" \
@@ -79,8 +79,6 @@ jobs:
 
       - name: Discord notify (success)
         if: success()
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
             echo "DISCORD_WEBHOOK_URL 미설정 — 알림 생략"

@@ -162,7 +162,7 @@ LEGAL_PRIVACY_OFFICER_EMAIL=
 - **GitHub Actions secrets 등록** (자동 백업·크롤·CI 용)
   - `NEXT_PUBLIC_SUPABASE_URL` (또는 `SUPABASE_URL`)
   - `SUPABASE_SERVICE_ROLE_KEY` (catalog-crawl 용)
-  - `SUPABASE_DB_URL` — Supabase Dashboard > Project Settings > Database > Connection string (direct, :5432) — **db-backup.yml 일일 백업용**
+  - `SUPABASE_DB_URL` — Supabase Dashboard > Project Settings > Database > Connection string (direct, :5432) — **db-backup.yml 일일 오프사이트 백업용**
   - `DISCORD_WEBHOOK_URL`
 - Plausible 계정 생성 (v1.5)
 - 도메인 구입 (M9)
