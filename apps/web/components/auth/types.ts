@@ -7,4 +7,10 @@ export type ActionDescriptor =
   | { type: 'vote'; comboId: string }
   | { type: 'reviewVote'; reviewId: string; comboId: string }
   | { type: 'reviewSubmit'; comboId: string; rating: number; content: string }
+  | {
+      type: 'reportSubmit';
+      targetType: 'combo' | 'review';
+      targetId: string;
+      reason: string;
+    }
   | { type: 'comboNew' };

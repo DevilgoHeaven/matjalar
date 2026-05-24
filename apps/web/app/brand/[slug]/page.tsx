@@ -59,7 +59,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
         <div className="mx-auto max-w-3xl">
           <Link
             href="/"
-            className="text-sm font-semibold text-action/70 underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-action/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
           >
             맛잘알
           </Link>
@@ -77,6 +77,12 @@ export default async function BrandPage({ params }: BrandPageProps) {
             <span className="rounded-full bg-white/70 px-3 py-2">
               공개 {data.combos.length}개
             </span>
+            <Link
+              href="/combo/new"
+              className="inline-flex min-h-11 items-center rounded-full bg-action px-4 text-xs font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+            >
+              조합 제보
+            </Link>
           </div>
         </div>
       </section>

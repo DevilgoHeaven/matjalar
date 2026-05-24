@@ -12,10 +12,10 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { CATEGORY_TOKENS, type CategoryKey } from '@mzr/ui';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { ComboCard } from '@/components/combo/ComboCard';
-import { getHomePageData, type HomeCategory } from './data';
+import { CategoryTile } from '@/components/home/CategoryTile';
+import { getHomePageData } from './data';
 
 export const metadata: Metadata = {
   title: '맛잘알 — 프랜차이즈 꿀조합 위키',
@@ -52,14 +52,37 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto max-w-3xl px-5 py-6">
-          <h1 className="text-2xl font-black tracking-tight text-action">
-            맛잘알
-          </h1>
-          <p className="mt-1 text-sm font-medium leading-relaxed text-stone-500">
-            프랜차이즈 꿀조합 카드 — 30초 탐색
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-action">
+                맛잘알
+              </h1>
+              <p className="mt-1 text-sm font-medium leading-relaxed text-stone-500">
+                <span className="block break-keep sm:inline">
+                  프랜차이즈 꿀조합 카드
+                </span>
+                <span className="block break-keep sm:ml-1 sm:inline">
+                  30초 탐색
+                </span>
+              </p>
+            </div>
+            <nav aria-label="빠른 이동" className="flex shrink-0 gap-2">
+              <Link
+                href="/bookmarks"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-stone-300 bg-white px-3 text-xs font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+              >
+                찜
+              </Link>
+              <Link
+                href="/combo/new"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-action px-3 text-xs font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+              >
+                등록
+              </Link>
+            </nav>
+          </div>
 
-          <form action="/search" method="get" className="mt-5">
+          <form action="/search" method="get" className="mt-5 flex gap-2">
             <label htmlFor="home-search" className="sr-only">
               조합 검색
             </label>
@@ -70,8 +93,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               maxLength={80}
               autoComplete="off"
               placeholder="조합·메뉴·옵션 검색 (예: BMT, 사웨)"
-              className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm font-medium placeholder:text-stone-400 focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+              className="min-h-12 min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-4 text-sm font-medium placeholder:text-stone-400 focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
             />
+            <button
+              type="submit"
+              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-action px-4 text-sm font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+            >
+              검색
+            </button>
           </form>
         </div>
       </header>
@@ -140,59 +169,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         )}
       </section>
     </main>
-  );
-}
-
-function CategoryTile({ category }: { category: HomeCategory }) {
-  const token = CATEGORY_TOKENS[category.id as CategoryKey];
-  const gradient = token?.gradient ?? (['#F5F5F5', '#E5E5E5'] as const);
-
-  const tileInner = (
-    <div
-      className="flex aspect-square flex-col items-center justify-center rounded-xl p-2 text-center transition"
-      style={{
-        background: category.isActive
-          ? `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`
-          : '#F5F5F5',
-        opacity: category.isActive ? 1 : 0.55,
-      }}
-    >
-      <span className="text-2xl" aria-hidden="true">
-        {category.emoji}
-      </span>
-      <span className="mt-1 text-[11px] font-bold leading-tight text-action">
-        {category.label}
-      </span>
-      {!category.isActive && (
-        <span className="mt-1 rounded-full bg-stone-200 px-1.5 py-0.5 text-[9px] font-semibold text-stone-600">
-          준비중
-        </span>
-      )}
-    </div>
-  );
-
-  if (category.isActive && category.primaryBrandSlug) {
-    return (
-      <Link
-        href={`/brand/${category.primaryBrandSlug}`}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-        prefetch={false}
-      >
-        {tileInner}
-      </Link>
-    );
-  }
-
-  return (
-    <div
-      role="button"
-      aria-disabled="true"
-      tabIndex={-1}
-      title="아직 준비 중인 카테고리예요"
-      className="cursor-not-allowed"
-    >
-      {tileInner}
-    </div>
   );
 }
 

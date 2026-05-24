@@ -10,7 +10,7 @@ export type EventDescriptor =
   | { type: 'page_view'; pathname: string; referrer?: string }
   | { type: 'list_view'; list_kind: 'home' | 'brand' | 'search'; count: number }
   | { type: 'detail_view'; combo_id: string }
-  | { type: 'login_modal_open'; action_type: 'bookmark' | 'vote' | 'review' | 'register'; combo_id?: string }
+  | { type: 'login_modal_open'; action_type: 'bookmark' | 'vote' | 'review' | 'register' | 'report'; combo_id?: string }
   | { type: 'login_completed'; provider: 'kakao' | 'google' }
   | { type: 'vote_click'; combo_id: string; after: 'on' | 'off' }
   | { type: 'bookmark_click'; combo_id: string; after: 'on' | 'off' }

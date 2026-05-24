@@ -122,7 +122,7 @@ export function DuplicateAwareComboForm({
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
-              className="inline-flex h-10 items-center justify-center rounded-md bg-action px-4 text-sm font-black text-white transition hover:bg-gray-800 disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 text-sm font-black text-white transition hover:bg-gray-800 disabled:opacity-60"
               disabled={isPending || isSubmittingRef.current}
               onClick={() => submitWithoutDuplicateCheck(true)}
             >
@@ -130,7 +130,7 @@ export function DuplicateAwareComboForm({
             </button>
             <button
               type="button"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-black text-amber-900 transition hover:border-amber-500 disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-black text-amber-900 transition hover:border-amber-500 disabled:opacity-60"
               disabled={isPending || isSubmittingRef.current}
               onClick={() => setSimilarCombos([])}
             >

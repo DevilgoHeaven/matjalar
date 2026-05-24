@@ -58,6 +58,17 @@ export async function dispatchPendingAction(
           ? { ok: true, refresh: true }
           : { ok: false, error: result.error };
       }
+      case 'reportSubmit': {
+        const { submitReport } = await import('@/app/actions/reports');
+        const result = await submitReport({
+          targetType: descriptor.targetType,
+          targetId: descriptor.targetId,
+          reason: descriptor.reason,
+        });
+        return result.ok
+          ? { ok: true, refresh: true }
+          : { ok: false, error: result.error };
+      }
       case 'comboNew': {
         // 페이지 이동만 — descriptor 만 있으면 redirect
         return { ok: true, redirectTo: '/combo/new' };

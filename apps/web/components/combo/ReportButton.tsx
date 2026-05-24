@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { submitReport } from '@/app/actions/reports';
+import { useAuthModal } from '@/components/auth/AuthModalProvider';
 import { trackEvent } from '@/lib/analytics/events';
 
 interface ReportButtonProps {
@@ -17,6 +18,7 @@ export function ReportButton({
   isSignedIn,
   tone = 'light',
 }: ReportButtonProps) {
+  const { openAuthModal } = useAuthModal();
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -27,14 +29,28 @@ export function ReportButton({
       ? 'text-gray-300 hover:text-white'
       : 'text-gray-500 hover:text-action';
 
+  const normalizedReason = reason.normalize('NFC').trim();
+  const canSubmit = normalizedReason.length >= 4;
+
   const submit = () => {
+    if (!canSubmit) {
+      setMessage('신고 사유를 조금 더 구체적으로 입력해 주세요.');
+      return;
+    }
+
     if (!isSignedIn) {
-      setMessage('로그인이 필요합니다.');
+      openAuthModal({
+        type: 'reportSubmit',
+        targetType,
+        targetId,
+        reason: normalizedReason,
+      });
+      setIsOpen(false);
       return;
     }
 
     startTransition(async () => {
-      const result = await submitReport({ targetType, targetId, reason });
+      const result = await submitReport({ targetType, targetId, reason: normalizedReason });
       if (!result.ok) {
         setMessage(result.error);
         return;
@@ -43,7 +59,11 @@ export function ReportButton({
       setReason('');
       setIsOpen(false);
       setMessage('신고가 접수되었습니다.');
-      void trackEvent({ type: 'report_submit', target_type: targetType, target_id: targetId });
+      void trackEvent({
+        type: 'report_submit',
+        target_type: targetType,
+        target_id: targetId,
+      });
     });
   };
 
@@ -55,7 +75,7 @@ export function ReportButton({
           setMessage(null);
           setIsOpen((value) => !value);
         }}
-        className={`text-xs font-bold underline-offset-4 hover:underline ${buttonClass}`}
+        className={`inline-flex min-h-11 items-center rounded-full px-3 text-xs font-bold underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 ${buttonClass}`}
       >
         신고
       </button>
@@ -71,20 +91,24 @@ export function ReportButton({
           />
           {message ? (
             <p className="mt-2 text-xs font-semibold text-gray-500">{message}</p>
-          ) : null}
+          ) : (
+            <p className="mt-2 text-xs font-semibold text-gray-500">
+              4자 이상 입력해 주세요.
+            </p>
+          )}
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="h-8 rounded-md px-3 text-xs font-bold text-gray-500 hover:bg-gray-100"
+              className="min-h-11 rounded-md px-3 text-xs font-bold text-gray-500 hover:bg-gray-100"
             >
               취소
             </button>
             <button
               type="button"
               onClick={submit}
-              disabled={isPending}
-              className="h-8 rounded-md bg-action px-3 text-xs font-black text-white disabled:opacity-50"
+              disabled={isPending || !canSubmit}
+              className="min-h-11 rounded-md bg-action px-3 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               접수
             </button>
@@ -100,4 +124,3 @@ export function ReportButton({
     </div>
   );
 }
-

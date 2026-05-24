@@ -69,7 +69,7 @@ export function ReviewVoteButton({
   };
 
   const baseClass =
-    'inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-70';
+    'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-70';
   const lightClass = optimistic.voted
     ? 'bg-action text-white focus-visible:ring-action'
     : 'border border-gray-300 bg-white text-gray-600 hover:border-gray-500 focus-visible:ring-action';

@@ -140,7 +140,7 @@ function LegalHeader({
     <header className="border-b border-stone-200 pb-6">
       <Link
         href="/"
-        className="text-sm font-bold text-stone-500 underline-offset-4 hover:underline"
+        className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-bold text-stone-500 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
       >
         맛잘알
       </Link>

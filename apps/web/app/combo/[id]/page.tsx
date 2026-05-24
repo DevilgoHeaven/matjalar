@@ -76,7 +76,7 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
         <div className="mx-auto max-w-2xl">
           <Link
             href={`/brand/${combo.brand.slug}`}
-            className="text-sm font-semibold text-action/70 underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-action/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
           >
             {combo.brand.name}
           </Link>

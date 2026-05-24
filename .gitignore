@@ -45,6 +45,7 @@ desktop.ini
 .cache/
 .eslintcache
 .turbo
+.captures/
 
 # 테스트
 coverage/

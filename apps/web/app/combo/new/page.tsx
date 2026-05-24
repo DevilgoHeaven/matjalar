@@ -84,7 +84,7 @@ export default async function ComboNewPage({ searchParams }: ComboNewPageProps) 
           </div>
           <Link
             href={`/brand/${catalog.brand.slug}`}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-bold text-gray-700 transition hover:border-gray-500"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-bold text-gray-700 transition hover:border-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
           >
             브랜드 페이지
           </Link>

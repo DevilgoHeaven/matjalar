@@ -200,14 +200,16 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
       }
     }
     // KPI: 로그인 모달 노출 이벤트
-    const actionType: 'bookmark' | 'vote' | 'review' | 'register' =
+    const actionType: 'bookmark' | 'vote' | 'review' | 'register' | 'report' =
       descriptor.type === 'bookmark'
         ? 'bookmark'
         : descriptor.type === 'vote'
           ? 'vote'
           : descriptor.type === 'reviewSubmit' || descriptor.type === 'reviewVote'
             ? 'review'
-            : 'register';
+            : descriptor.type === 'reportSubmit'
+              ? 'report'
+              : 'register';
     void trackEvent({
       type: 'login_modal_open',
       action_type: actionType,
@@ -280,14 +282,14 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => void startOAuth('kakao')}
-                className="w-full rounded-lg bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191919] hover:opacity-90"
+                className="min-h-11 w-full rounded-lg bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191919] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
               >
                 카카오로 시작하기
               </button>
               <button
                 type="button"
                 onClick={() => void startOAuth('google')}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-action hover:bg-gray-50"
+                className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-action hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
               >
                 Google로 시작하기
               </button>
@@ -296,7 +298,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={closeModal}
-              className="mt-4 w-full text-xs text-gray-500 underline"
+              className="mt-4 min-h-11 w-full rounded-md text-xs font-bold text-gray-500 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
             >
               나중에 할게요
             </button>
