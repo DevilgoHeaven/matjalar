@@ -8,6 +8,7 @@
     "build": "node ../../scripts/clean-serwist-output.mjs && next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
+    "seed:combos": "node scripts/seed-subway-combos.mjs",
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
