@@ -20,6 +20,10 @@ create type public.events_type as enum (
   'review_submit',
   'combo_register_started',
   'combo_register_submitted',
+  'order_copy',
+  'share_click',
+  'ranking_view',
+  'quiz_result_share',
   'client_error',
   'report_submit'
 );
@@ -39,6 +43,10 @@ create type public.events_type as enum (
 | `review_submit` | addReview 성공 (회원 전용) | 한 줄 후기 작성률 |
 | `combo_register_started` | /combo/new 첫 진입 | 조합 등록 시도 분모 |
 | `combo_register_submitted` | registerCombo 성공 | 조합 등록 시도 분자 |
+| `order_copy` | 조합 상세 주문문 복사 | 매장 앞 실사용 의도 |
+| `share_click` | 조합/랭킹/퀴즈 공유 버튼 | 외부 공유 시도 |
+| `ranking_view` | /rankings 진입 | 가성비·초보추천 랭킹 관심 |
+| `quiz_result_share` | 취향 퀴즈 결과 공유 | 결과형 바이럴 루프 |
 | `client_error` | window.onerror, unhandledrejection | 에러 모니터링 (R-17) |
 | `report_submit` | submitReport 호출 | 신고 통계 |
 
@@ -56,6 +64,10 @@ type EventPayload =
   | { type: 'review_submit',         combo_id: string, rating: number }
   | { type: 'combo_register_started' }
   | { type: 'combo_register_submitted', combo_id: string }
+  | { type: 'order_copy',            combo_id: string, source: 'detail' | 'quiz' }
+  | { type: 'share_click',           target_type: 'combo' | 'ranking' | 'quiz_result', target_id?: string, channel: 'native' | 'clipboard' | 'kakao' | 'image' | 'fallback' }
+  | { type: 'ranking_view',          ranking_kind: string, count: number }
+  | { type: 'quiz_result_share',     result_kind: string, combo_id?: string }
   | { type: 'client_error',          message: string, stack?: string, url?: string }
   | { type: 'report_submit',         target_type: 'combo' | 'review', target_id: string };
 ```

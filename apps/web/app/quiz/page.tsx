@@ -1,0 +1,39 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { PageEvents } from '@/components/analytics/PageEvents';
+import { QuizClient } from './QuizClient';
+import { getQuizPageData } from './data';
+
+export const metadata: Metadata = {
+  title: '취향 퀴즈 - 맛잘알',
+  description: '가격, 초보추천, 매운맛, 든든함 기준으로 오늘 먹을 조합을 고르세요.',
+};
+
+export default async function QuizPage() {
+  const combos = await getQuizPageData();
+
+  return (
+    <main className="min-h-dvh bg-[#FAFAFA]">
+      <PageEvents events={[{ type: 'page_view', pathname: '/quiz' }]} />
+      <header className="border-b border-stone-200 bg-white">
+        <div className="mx-auto max-w-3xl px-5 py-6">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-bold text-stone-500 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+          >
+            맛잘알
+          </Link>
+          <h1 className="mt-4 break-keep text-3xl font-black leading-tight text-action">
+            오늘 뭐 먹을지 3초 컷
+          </h1>
+          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-stone-600">
+            기준을 고르면 바로 주문 가능한 조합을 추천해요.
+          </p>
+        </div>
+      </header>
+      <section className="mx-auto max-w-3xl px-5 py-6">
+        <QuizClient combos={combos} />
+      </section>
+    </main>
+  );
+}

@@ -1380,6 +1380,10 @@ export type Database = {
         | "review_submit"
         | "combo_register_started"
         | "combo_register_submitted"
+        | "order_copy"
+        | "share_click"
+        | "ranking_view"
+        | "quiz_result_share"
         | "client_error"
         | "report_submit"
     }

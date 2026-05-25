@@ -35,7 +35,7 @@ type ComboCoreRow = Pick<
   | 'menu_variant_id'
   | 'featured_review_id'
 >;
-type BrandViewRow = Pick<BrandRow, 'name' | 'slug'>;
+type BrandViewRow = Pick<BrandRow, 'name' | 'slug' | 'last_verified_at'>;
 type MenuViewRow = Pick<MenuRow, 'name'>;
 type VariantViewRow = Pick<MenuVariantRow, 'name' | 'base_price'>;
 type StatsViewRow = Pick<
@@ -98,6 +98,7 @@ export interface ComboDetail {
   brand: {
     name: string;
     slug: string;
+    lastVerifiedAt: string | null;
   };
   menu: {
     name: string;
@@ -204,7 +205,7 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
   ] = await Promise.all([
     db
       .from('brands')
-      .select<BrandViewRow>('name, slug')
+      .select<BrandViewRow>('name, slug, last_verified_at')
       .eq('id', combo.brand_id)
       .single(),
     db
@@ -296,6 +297,7 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
     brand: {
       name: brandResult.data.name,
       slug: brandResult.data.slug,
+      lastVerifiedAt: brandResult.data.last_verified_at,
     },
     menu: {
       name: menuResult.data.name,

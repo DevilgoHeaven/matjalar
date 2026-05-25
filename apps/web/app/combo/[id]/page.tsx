@@ -4,12 +4,18 @@ import { notFound } from 'next/navigation';
 import { CATEGORY_TOKENS } from '@mzr/ui';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { BookmarkButton } from '@/components/combo/BookmarkButton';
+import { ComboSharePanel } from '@/components/combo/ComboSharePanel';
 import { FeaturedReview } from '@/components/combo/FeaturedReview';
 import { ReportButton } from '@/components/combo/ReportButton';
 import { ReceiptBox } from '@/components/combo/ReceiptBox';
 import { ReviewForm } from '@/components/combo/ReviewForm';
 import { ReviewList } from '@/components/combo/ReviewList';
+import { VerificationBadge } from '@/components/combo/VerificationBadge';
 import { VoteButton } from '@/components/combo/VoteButton';
+import {
+  buildOrderScript,
+  buildOrderSummary,
+} from '@/lib/combo/order-script';
 import {
   getComboDetail,
   getComboMetadata,
@@ -58,6 +64,14 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
 
   const featuredReviewId = combo.featuredReview?.id;
   const gradient = CATEGORY_TOKENS.fastfood.gradient;
+  const orderInput = {
+    brandName: combo.brand.name,
+    menuName: combo.menu.name,
+    variantName: combo.menu.variantName,
+    options: combo.options,
+  };
+  const orderText = buildOrderScript(orderInput);
+  const orderSummary = buildOrderSummary(orderInput);
 
   return (
     <main className="min-h-dvh bg-[#FAFAFA]">
@@ -87,6 +101,14 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
             {combo.cardSummary}
           </p>
 
+          <div className="mt-4">
+            <VerificationBadge
+              priceStatus={combo.priceStatus}
+              lastVerifiedAt={combo.brand.lastVerifiedAt}
+              reviewCount={combo.stats.reviewCount}
+            />
+          </div>
+
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <VoteButton
               comboId={combo.id}
@@ -115,6 +137,13 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
       </section>
 
       <div className="mx-auto grid max-w-2xl gap-6 px-5 py-6">
+        <ComboSharePanel
+          comboId={combo.id}
+          title={combo.title}
+          orderText={orderText}
+          orderSummary={orderSummary}
+        />
+
         <ReceiptBox
           menuName={combo.menu.name}
           variantName={combo.menu.variantName}

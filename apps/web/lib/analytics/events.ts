@@ -17,6 +17,15 @@ export type EventDescriptor =
   | { type: 'review_submit'; combo_id: string; rating: number }
   | { type: 'combo_register_started' }
   | { type: 'combo_register_submitted'; combo_id: string }
+  | { type: 'order_copy'; combo_id: string; source: 'detail' | 'quiz' }
+  | {
+      type: 'share_click';
+      target_type: 'combo' | 'ranking' | 'quiz_result';
+      target_id?: string;
+      channel: 'native' | 'clipboard' | 'kakao' | 'image' | 'fallback';
+    }
+  | { type: 'ranking_view'; ranking_kind: string; count: number }
+  | { type: 'quiz_result_share'; result_kind: string; combo_id?: string }
   | { type: 'client_error'; message: string; stack?: string; url?: string }
   | { type: 'report_submit'; target_type: 'combo' | 'review'; target_id: string };
 

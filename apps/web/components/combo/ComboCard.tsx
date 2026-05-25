@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { BrandListCombo } from '@/app/brand/[slug]/data';
+import { VerificationBadge } from './VerificationBadge';
 
 interface ComboCardProps {
   combo: BrandListCombo;
@@ -33,6 +34,10 @@ export function ComboCard({ combo, brand }: ComboCardProps) {
         <p className="shrink-0 text-right text-sm font-bold text-action">
           {formatPrice(combo.estimatedPrice, combo.priceStatus)}
         </p>
+      </div>
+
+      <div className="mt-3">
+        <VerificationBadge priceStatus={combo.priceStatus} />
       </div>
 
       {combo.tags.length ? (

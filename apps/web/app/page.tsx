@@ -68,6 +68,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             </div>
             <nav aria-label="빠른 이동" className="flex shrink-0 gap-2">
               <Link
+                href="/brand"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-stone-300 bg-white px-3 text-xs font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+              >
+                브랜드
+              </Link>
+              <Link
                 href="/bookmarks"
                 className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-stone-300 bg-white px-3 text-xs font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
               >
@@ -136,6 +142,29 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
+      <section className="mx-auto max-w-3xl px-5 pb-6">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <QuickLink
+            href="/rankings?kind=budget"
+            eyebrow="만원컷"
+            title="가성비 먼저"
+            body="가격 확인중은 빼고 낮은 예상가부터 봅니다."
+          />
+          <QuickLink
+            href="/rankings?kind=beginner"
+            eyebrow="초보추천"
+            title="주문 실패 줄이기"
+            body="처음이어도 덜 헤매는 안전 조합만 모았어요."
+          />
+          <QuickLink
+            href="/quiz"
+            eyebrow="취향퀴즈"
+            title="내 조합 찾기"
+            body="3초 선택으로 친구에게 보낼 결과를 만듭니다."
+          />
+        </div>
+      </section>
+
       <section className="mx-auto max-w-3xl px-5 pb-12 pt-2">
         <h2 className="mb-4 text-lg font-black text-action">
           오늘의 인기 조합
@@ -169,6 +198,33 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         )}
       </section>
     </main>
+  );
+}
+
+function QuickLink({
+  href,
+  eyebrow,
+  title,
+  body,
+}: {
+  href: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-lg border border-stone-200 bg-white p-4 transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+    >
+      <p className="text-[11px] font-black tracking-widest text-stone-500">
+        {eyebrow}
+      </p>
+      <h2 className="mt-2 text-base font-black text-action">{title}</h2>
+      <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-stone-500">
+        {body}
+      </p>
+    </Link>
   );
 }
 

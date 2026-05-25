@@ -18,6 +18,10 @@ const eventTypeSchema = z.enum([
   'review_submit',
   'combo_register_started',
   'combo_register_submitted',
+  'order_copy',
+  'share_click',
+  'ranking_view',
+  'quiz_result_share',
   'client_error',
   'report_submit',
 ]);
@@ -53,7 +57,8 @@ export async function POST(request: Request) {
     p_payload: parsed.data.payload as Json,
   });
   if (error) {
-    return NextResponse.json({ error: 'insert_failed' }, { status: 500 });
+    console.warn('[events] insert failed:', error.message);
+    return new NextResponse(null, { status: 204 });
   }
 
   return new NextResponse(null, { status: 204 });
