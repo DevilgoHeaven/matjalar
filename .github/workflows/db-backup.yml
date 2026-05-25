@@ -6,8 +6,8 @@
 #
 # Secrets (사용자 책임):
 #  - SUPABASE_DB_URL — Supabase Dashboard > Project Settings > Database > Connection string (URI / direct)
-#                      포맷: postgresql://postgres.<ref>:<password>@<region>.pooler.supabase.com:6543/postgres
-#                      ※ pgbouncer 가 아닌 direct(:5432) URL 권장 (pg_dump 호환성)
+#                      포맷: postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
+#                      ※ pooler 가 아닌 direct(:5432) URL 권장 (pg_dump 호환성)
 #  - DISCORD_WEBHOOK_URL — (선택) 백업 실패 시 알림
 #
 # 복원 절차 (수동):

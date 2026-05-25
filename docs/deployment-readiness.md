@@ -24,7 +24,7 @@
 - [x] `pnpm test`
 - [x] `pnpm --filter @mzr/web build`
 - [x] `pnpm audit:service-role` 로 클라이언트 청크 service role 노출 없음 확인
-- [x] `pnpm audit --audit-level=high` 통과. 현재 low 1개, moderate 2개는 남아 있음.
+- [x] `pnpm audit --audit-level=moderate` 통과. 현재 known vulnerabilities 0건.
 - [x] `pnpm --filter @mzr/web seed:combos -- --dry-run`: 60개 검증, insert 0, 기존 60개 확인
 - [x] Supabase migration list 및 `supabase db push --dry-run`: remote DB up to date
 - [x] 원격 Supabase RLS 스팟 검증: 익명 events insert 차단, 타인 review 수정 차단, self role 승격 차단, member pending combo publish 차단
