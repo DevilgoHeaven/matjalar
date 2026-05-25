@@ -10,7 +10,7 @@ interface ComboSharePanelProps {
   orderSummary: string;
 }
 
-type ShareState = 'idle' | 'copied' | 'shared' | 'fallback' | 'failed';
+type ShareState = 'idle' | 'copied' | 'shared' | 'fallback';
 
 export function ComboSharePanel({
   comboId,
@@ -21,6 +21,7 @@ export function ComboSharePanel({
   const [state, setState] = useState<ShareState>('idle');
   const [isBusy, setIsBusy] = useState(false);
   const [showText, setShowText] = useState(false);
+  const [fallbackText, setFallbackText] = useState(orderText);
 
   const shareUrl = useMemo(() => {
     if (typeof window === 'undefined') return `/combo/${comboId}`;
@@ -31,6 +32,7 @@ export function ComboSharePanel({
   async function copyOrder() {
     setIsBusy(true);
     void trackEvent({ type: 'order_copy', combo_id: comboId, source: 'detail' });
+    setFallbackText(orderText);
     const ok = await copyText(orderText);
     setShowText(!ok);
     setState(ok ? 'copied' : 'fallback');
@@ -40,6 +42,7 @@ export function ComboSharePanel({
   async function shareCombo() {
     setIsBusy(true);
     const text = `${title}\n${orderSummary}\n${shareUrl}`;
+    setFallbackText(text);
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({ title, text: orderSummary, url: shareUrl });
@@ -138,15 +141,13 @@ export function ComboSharePanel({
             ? '공유창을 열었어요.'
             : state === 'fallback'
               ? '자동 복사가 막혀 아래 문장을 직접 선택해 주세요.'
-              : state === 'failed'
-                ? '공유가 취소됐거나 막혔어요.'
-                : ''}
+              : ''}
       </p>
 
       {showText ? (
         <textarea
           readOnly
-          value={orderText}
+          value={fallbackText}
           className="mt-2 h-28 w-full rounded-lg border border-stone-300 bg-white p-3 text-sm font-semibold text-action"
         />
       ) : null}
