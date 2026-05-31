@@ -8,6 +8,31 @@ import { parseQuizPreferences } from './preferences';
 export const metadata: Metadata = {
   title: '취향 퀴즈 - 맛잘알',
   description: '가격, 초보추천, 매운맛, 든든함 기준으로 오늘 먹을 조합을 고르세요.',
+  alternates: {
+    canonical: '/quiz',
+  },
+  openGraph: {
+    title: '취향 퀴즈 - 맛잘알',
+    description:
+      '가격, 초보추천, 매운맛, 든든함 기준으로 오늘 먹을 조합을 고르세요.',
+    url: '/quiz',
+    type: 'website',
+    images: [
+      {
+        url: '/quiz/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: '맛잘알 취향 퀴즈 공유 이미지',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '취향 퀴즈 - 맛잘알',
+    description:
+      '가격, 초보추천, 매운맛, 든든함 기준으로 오늘 먹을 조합을 고르세요.',
+    images: ['/quiz/opengraph-image'],
+  },
 };
 
 interface QuizPageProps {

@@ -52,10 +52,28 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: {
+      canonical: `/combo/${id}`,
+    },
     openGraph: {
       title,
       description,
+      url: `/combo/${id}`,
       type: 'article',
+      images: [
+        {
+          url: `/combo/${id}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${combo.title} 맛잘알 공유 이미지`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/combo/${id}/opengraph-image`],
     },
   };
 }

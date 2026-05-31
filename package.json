@@ -25,6 +25,7 @@
     "audit:high": "pnpm audit --audit-level=high",
     "audit:db-security": "node ./scripts/audit-local-db-security.mjs",
     "audit:service-role": "node ./scripts/audit-service-role.mjs",
+    "qa:social-preview": "node ./scripts/check-social-preview.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\""
   },
   "pnpm": {

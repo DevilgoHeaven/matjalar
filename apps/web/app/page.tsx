@@ -25,6 +25,31 @@ export const metadata: Metadata = {
   title: '맛잘알 — 프랜차이즈 꿀조합 위키',
   description:
     '서브웨이부터 시작하는 검증된 꿀조합 카드. 30초 안에 골라보세요.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: '맛잘알 — 프랜차이즈 꿀조합 위키',
+    description:
+      '서브웨이부터 시작하는 검증된 꿀조합 카드. 30초 안에 골라보세요.',
+    url: '/',
+    type: 'website',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: '맛잘알 프랜차이즈 꿀조합 카드',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '맛잘알 — 프랜차이즈 꿀조합 위키',
+    description:
+      '서브웨이부터 시작하는 검증된 꿀조합 카드. 30초 안에 골라보세요.',
+    images: ['/opengraph-image'],
+  },
 };
 
 interface HomePageProps {
@@ -123,9 +148,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               </form>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <HeroLink href="/rankings/budget">만원컷 보기</HeroLink>
-                <HeroLink href="/quiz">내 취향 찾기</HeroLink>
-                <HeroLink href="/rankings/spicy">매운맛 랭킹</HeroLink>
+                {DISCOVERY_LINKS.slice(0, 3).map((link) => (
+                  <HeroLink key={link.href} href={link.href}>
+                    {link.shortLabel}
+                  </HeroLink>
+                ))}
               </div>
             </div>
 
@@ -201,6 +228,30 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
+      <section className="mx-auto max-w-5xl px-5 pb-8">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-stone-500">
+              PICK BY MOMENT
+            </p>
+            <h2 className="mt-1 text-lg font-black text-action">
+              지금 상황으로 바로 고르기
+            </h2>
+          </div>
+          <Link
+            href="/rankings"
+            className="text-xs font-black text-action underline-offset-4 hover:underline"
+          >
+            전체 랭킹
+          </Link>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {DISCOVERY_LINKS.map((link) => (
+            <DiscoveryLink key={link.href} link={link} />
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-5xl px-5 pb-12 pt-2">
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
@@ -236,7 +287,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     averageRating: combo.stats.averageRating,
                     hotScore: combo.stats.hotScore,
                   },
-                  tags: [],
+                  tags: combo.tags,
                 }}
                 brand={{ name: combo.brand.name }}
               />
@@ -309,6 +360,77 @@ function HeroLink({ href, children }: { href: string; children: ReactNode }) {
       className="inline-flex min-h-10 items-center rounded-full border border-stone-300 bg-white/80 px-3 text-xs font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
     >
       {children}
+    </Link>
+  );
+}
+
+const DISCOVERY_LINKS = [
+  {
+    href: '/rankings/budget',
+    shortLabel: '만원컷 보기',
+    eyebrow: '월급 전',
+    title: '지갑 덜 아픈 조합',
+    body: '예상가와 주문 난이도를 같이 보고 바로 고릅니다.',
+  },
+  {
+    href: '/quiz',
+    shortLabel: '내 취향 찾기',
+    eyebrow: '공유각',
+    title: '친구에게 보낼 결과',
+    body: '오늘 기준을 고르면 공유 가능한 추천 카드가 나옵니다.',
+  },
+  {
+    href: '/rankings/spicy',
+    shortLabel: '매운맛 랭킹',
+    eyebrow: '입맛 없을 때',
+    title: '끝맛 확실한 조합',
+    body: '매콤한 소스와 옵션이 들어간 조합만 모아 봅니다.',
+  },
+  {
+    href: '/rankings/beginner',
+    shortLabel: '초보추천',
+    eyebrow: '처음 주문',
+    title: '덜 헤매는 안전 조합',
+    body: '메뉴와 옵션 흐름이 단순한 조합부터 보여줍니다.',
+  },
+  {
+    href: '/rankings/diet',
+    shortLabel: '가볍게',
+    eyebrow: '부담 줄이기',
+    title: '산뜻하게 먹는 조합',
+    body: '소스와 추가 토핑 부담이 낮은 선택지를 봅니다.',
+  },
+  {
+    href: '/rankings/hearty',
+    shortLabel: '든든한 점심',
+    eyebrow: '오래 버티기',
+    title: '한 끼감 있는 조합',
+    body: '포만감이 남는 메뉴와 옵션 조합을 먼저 봅니다.',
+  },
+] as const;
+
+function DiscoveryLink({
+  link,
+}: {
+  link: (typeof DISCOVERY_LINKS)[number];
+}) {
+  return (
+    <Link
+      href={link.href}
+      className="group rounded-lg border border-stone-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-stone-500 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+    >
+      <p className="text-[11px] font-black tracking-widest text-stone-500">
+        {link.eyebrow}
+      </p>
+      <h3 className="mt-2 break-keep text-base font-black text-action">
+        {link.title}
+      </h3>
+      <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-stone-500">
+        {link.body}
+      </p>
+      <p className="mt-3 text-xs font-black text-action underline-offset-4 group-hover:underline">
+        바로 보기
+      </p>
     </Link>
   );
 }

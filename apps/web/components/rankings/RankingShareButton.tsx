@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { buildTrackedSharePath } from '@mzr/db';
 import { trackEvent } from '@/lib/analytics/events';
 
 interface RankingShareButtonProps {
@@ -17,22 +18,38 @@ export function RankingShareButton({
   description,
 }: RankingShareButtonProps) {
   const [state, setState] = useState<ShareState>('idle');
-  const url = useMemo(() => {
-    if (typeof window === 'undefined') return `/rankings/${rankingKind}`;
-    return `${window.location.origin}/rankings/${rankingKind}`;
-  }, [rankingKind]);
+  const [isBusy, setIsBusy] = useState(false);
+  const basePath = `/rankings/${rankingKind}`;
+  const shareUrlFor = useMemo(
+    () => (channel: 'native' | 'clipboard' | 'fallback') => {
+      const trackedPath = buildTrackedSharePath({
+        path: basePath,
+        surface: 'ranking',
+        channel,
+        content: rankingKind,
+      });
+      if (typeof window === 'undefined') return trackedPath;
+      return `${window.location.origin}${trackedPath}`;
+    },
+    [basePath, rankingKind]
+  );
 
   async function shareRanking() {
-    const text = `맛잘알 ${title}\n${description}\n${url}`;
+    if (isBusy) return;
+    setIsBusy(true);
+    const clipboardUrl = shareUrlFor('clipboard');
+    const text = `맛잘알 ${title}\n${description}\n${clipboardUrl}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title: `맛잘알 ${title}`, text: description, url });
+        const nativeUrl = shareUrlFor('native');
+        await navigator.share({ title: `맛잘알 ${title}`, text: description, url: nativeUrl });
         setState('shared');
         void trackEvent({
           type: 'share_click',
           target_type: 'ranking',
           target_id: rankingKind,
           channel: 'native',
+          share_url_path: new URL(nativeUrl).pathname + new URL(nativeUrl).search,
         });
         return;
       }
@@ -43,6 +60,12 @@ export function RankingShareButton({
         target_type: 'ranking',
         target_id: rankingKind,
         channel: copied ? 'clipboard' : 'fallback',
+        share_url_path: buildTrackedSharePath({
+          path: basePath,
+          surface: 'ranking',
+          channel: copied ? 'clipboard' : 'fallback',
+          content: rankingKind,
+        }),
       });
     } catch {
       const copied = await copyText(text);
@@ -52,7 +75,15 @@ export function RankingShareButton({
         target_type: 'ranking',
         target_id: rankingKind,
         channel: copied ? 'clipboard' : 'fallback',
+        share_url_path: buildTrackedSharePath({
+          path: basePath,
+          surface: 'ranking',
+          channel: copied ? 'clipboard' : 'fallback',
+          content: rankingKind,
+        }),
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -61,7 +92,8 @@ export function RankingShareButton({
       <button
         type="button"
         onClick={() => void shareRanking()}
-        className="inline-flex min-h-11 items-center rounded-full bg-action px-4 text-xs font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+        disabled={isBusy}
+        className="inline-flex min-h-11 items-center rounded-full bg-action px-4 text-xs font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
       >
         랭킹 공유
       </button>

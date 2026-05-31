@@ -102,6 +102,34 @@ export function RankingsView({ data, pathname }: RankingsViewProps) {
           </div>
         )}
       </section>
+
+      <section className="mx-auto max-w-5xl px-5 pb-12">
+        <p className="text-xs font-black tracking-widest text-stone-500">
+          NEXT PICK
+        </p>
+        <h2 className="mt-1 text-lg font-black text-action">
+          기준을 바꿔 다시 고르기
+        </h2>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {(Object.keys(RANKING_DEFINITIONS) as RankingKind[])
+            .filter((kind) => kind !== data.kind)
+            .slice(0, 3)
+            .map((kind) => (
+              <Link
+                key={kind}
+                href={`/rankings/${kind}`}
+                className="rounded-lg border border-stone-200 bg-white p-3 transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+              >
+                <p className="text-xs font-black text-action">
+                  {RANKING_DEFINITIONS[kind].label}
+                </p>
+                <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-stone-500">
+                  {RANKING_DEFINITIONS[kind].description}
+                </p>
+              </Link>
+            ))}
+        </div>
+      </section>
     </main>
   );
 }

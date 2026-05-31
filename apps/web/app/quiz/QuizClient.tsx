@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { buildComboPersonality } from '@mzr/db';
+import { buildComboPersonality, buildTrackedSharePath } from '@mzr/db';
 import type { PublicCombo } from '@/lib/combo/public-combos';
 import { trackEvent } from '@/lib/analytics/events';
 import { ComboVisual } from '@/components/combo/ComboVisual';
@@ -40,24 +40,48 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
   async function shareResult() {
     if (!primary) return;
     const selectedIds = [...selected].sort();
-    const path = `/quiz?prefs=${encodeURIComponent(selectedIds.join(','))}`;
-    const url =
-      typeof window === 'undefined' ? path : `${window.location.origin}${path}`;
+    const basePath = `/quiz?prefs=${encodeURIComponent(selectedIds.join(','))}`;
+    const clipboardPath = buildTrackedSharePath({
+      path: basePath,
+      surface: 'quiz_result',
+      channel: 'clipboard',
+      content: selectedIds.join('-'),
+    });
+    const clipboardUrl =
+      typeof window === 'undefined'
+        ? clipboardPath
+        : `${window.location.origin}${clipboardPath}`;
     const labels = QUIZ_PREFERENCES.filter((item) => selected.has(item.id))
       .map((item) => item.label)
       .join(', ');
     const personality = comboPersonality(primary);
-    const text = `내 맛잘알 결과: ${labels}\n${personality.shareText}\n추천은 ${primary.title}\n${url}`;
+    const buildText = (shareUrl: string) =>
+      `내 맛잘알 결과: ${labels}\n${personality.shareText}\n추천은 ${primary.title}\n${shareUrl}`;
+    const clipboardText = buildText(clipboardUrl);
 
     try {
       let channel: 'native' | 'clipboard' | 'fallback' = 'fallback';
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title: '맛잘알 취향 결과', text, url });
+        const nativePath = buildTrackedSharePath({
+          path: basePath,
+          surface: 'quiz_result',
+          channel: 'native',
+          content: selectedIds.join('-'),
+        });
+        const nativeUrl =
+          typeof window === 'undefined'
+            ? nativePath
+            : `${window.location.origin}${nativePath}`;
+        await navigator.share({
+          title: '맛잘알 취향 결과',
+          text: buildText(nativeUrl),
+          url: nativeUrl,
+        });
         setMessage('공유창을 열었어요.');
         channel = 'native';
       } else {
-        const copied = await copyText(text);
-        setMessage(copied ? '결과를 복사했어요.' : text);
+        const copied = await copyText(clipboardText);
+        setMessage(copied ? '결과를 복사했어요.' : clipboardText);
         channel = copied ? 'clipboard' : 'fallback';
       }
       void trackEvent({
@@ -70,15 +94,27 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
         target_type: 'quiz_result',
         target_id: selectedIds.join(','),
         channel,
+        share_url_path: buildTrackedSharePath({
+          path: basePath,
+          surface: 'quiz_result',
+          channel,
+          content: selectedIds.join('-'),
+        }),
       });
     } catch {
-      const copied = await copyText(text);
-      setMessage(copied ? '결과를 복사했어요.' : text);
+      const copied = await copyText(clipboardText);
+      setMessage(copied ? '결과를 복사했어요.' : clipboardText);
       void trackEvent({
         type: 'share_click',
         target_type: 'quiz_result',
         target_id: selectedIds.join(','),
         channel: copied ? 'clipboard' : 'fallback',
+        share_url_path: buildTrackedSharePath({
+          path: basePath,
+          surface: 'quiz_result',
+          channel: copied ? 'clipboard' : 'fallback',
+          content: selectedIds.join('-'),
+        }),
       });
     }
   }

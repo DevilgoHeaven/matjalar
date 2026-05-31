@@ -21,6 +21,8 @@ type CategoryRow = TableRow<'categories'>;
 type BrandRow = TableRow<'brands'>;
 type ComboRow = TableRow<'combos'>;
 type ComboStatsRow = TableRow<'combo_stats'>;
+type ComboTagRow = TableRow<'combo_tags'>;
+type TagRow = TableRow<'tags'>;
 
 type CategoryQueryRow = Pick<
   CategoryRow,
@@ -35,6 +37,8 @@ type ComboStatsQueryRow = Pick<
   ComboStatsRow,
   'combo_id' | 'hot_score' | 'vote_count' | 'review_count' | 'average_rating'
 >;
+type ComboTagQueryRow = Pick<ComboTagRow, 'combo_id' | 'tag_id'>;
+type TagQueryRow = Pick<TagRow, 'id' | 'slug' | 'label' | 'emoji' | 'sort_order'>;
 
 export interface HomeCategory {
   id: string;
@@ -58,6 +62,7 @@ export interface HomeHotCombo {
     averageRating: number;
     hotScore: number;
   };
+  tags: { label: string; emoji: string | null }[];
 }
 
 export interface HomePageData {
@@ -134,13 +139,18 @@ export async function getHomePageData(): Promise<HomePageData> {
   if (combosError) throw new Error(combosError.message);
 
   // 5. 브랜드 정보 join (name + slug)
-  const brandIds = [...new Set((combos ?? []).map((c) => c.brand_id))];
-  const { data: comboBrands, error: comboBrandsError } = brandIds.length
-    ? await db
-        .from('brands')
-        .select<Pick<BrandRow, 'id' | 'name' | 'slug'>>('id, name, slug')
-        .in('id', brandIds)
-    : { data: [], error: null };
+  const comboRows = combos ?? [];
+  const brandIds = [...new Set(comboRows.map((c) => c.brand_id))];
+  const [comboBrandsResult, tagsByComboId] = await Promise.all([
+    brandIds.length
+      ? db
+          .from('brands')
+          .select<Pick<BrandRow, 'id' | 'name' | 'slug'>>('id, name, slug')
+          .in('id', brandIds)
+      : Promise.resolve({ data: [], error: null }),
+    loadTagsByComboId(hotComboIds),
+  ]);
+  const { data: comboBrands, error: comboBrandsError } = comboBrandsResult;
   if (comboBrandsError) throw new Error(comboBrandsError.message);
 
   const brandById = new Map(
@@ -169,6 +179,9 @@ export async function getHomePageData(): Promise<HomePageData> {
           averageRating: stats?.average_rating ?? 0,
           hotScore: stats?.hot_score ?? 0,
         },
+        tags: (tagsByComboId.get(combo.id) ?? [])
+          .slice(0, 3)
+          .map(({ label, emoji }) => ({ label, emoji })),
       };
     })
     .filter((c): c is HomeHotCombo => c !== null);
@@ -177,4 +190,50 @@ export async function getHomePageData(): Promise<HomePageData> {
     categories: homeCategories,
     hotCombos: orderedCombos,
   };
+}
+
+async function loadTagsByComboId(comboIds: string[]) {
+  if (!comboIds.length) {
+    return new Map<string, (TagQueryRow & { sortOrder: number })[]>();
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const db = asSupabaseQueryClient(supabase);
+
+  const { data: comboTags, error: comboTagsError } = await db
+    .from('combo_tags')
+    .select<ComboTagQueryRow>('combo_id, tag_id')
+    .in('combo_id', comboIds);
+
+  if (comboTagsError) throw new Error(comboTagsError.message);
+
+  const tagIds = [...new Set((comboTags ?? []).map((row) => row.tag_id))];
+  if (!tagIds.length) {
+    return new Map<string, (TagQueryRow & { sortOrder: number })[]>();
+  }
+
+  const { data: tags, error: tagsError } = await db
+    .from('tags')
+    .select<TagQueryRow>('id, slug, label, emoji, sort_order')
+    .in('id', tagIds);
+
+  if (tagsError) throw new Error(tagsError.message);
+
+  const tagById = new Map((tags ?? []).map((tag) => [tag.id, tag]));
+  const tagsByComboId = new Map<string, (TagQueryRow & { sortOrder: number })[]>();
+
+  for (const comboTag of comboTags ?? []) {
+    const tag = tagById.get(comboTag.tag_id);
+    if (!tag) continue;
+    const current = tagsByComboId.get(comboTag.combo_id) ?? [];
+    current.push({ ...tag, sortOrder: tag.sort_order });
+    tagsByComboId.set(comboTag.combo_id, current);
+  }
+
+  return new Map(
+    [...tagsByComboId.entries()].map(([comboId, comboTagsForCombo]) => [
+      comboId,
+      comboTagsForCombo.sort((a, b) => a.sortOrder - b.sortOrder),
+    ])
+  );
 }

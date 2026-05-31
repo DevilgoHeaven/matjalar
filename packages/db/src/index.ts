@@ -29,6 +29,14 @@ export type {
   ComboPersonalityInput,
 } from './lib/combo-personality';
 
+// 공유 링크 추적 파라미터 생성
+export { buildTrackedSharePath } from './lib/share-url';
+export type {
+  ShareTrackingChannel,
+  ShareTrackingInput,
+  ShareTrackingSurface,
+} from './lib/share-url';
+
 // 관리자 성장 분석 집계
 export { computeAdminAnalytics } from './lib/admin-analytics';
 export type {

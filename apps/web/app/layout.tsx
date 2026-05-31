@@ -12,11 +12,38 @@ import type { Metadata, Viewport } from 'next';
 import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 import { ClientErrorSink } from '@/components/analytics/ClientErrorSink';
 import { SiteFooter } from '@/components/legal/SiteFooter';
+import { getSiteUrl } from '@/lib/site/url';
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrl(),
   title: '맛잘알 — 프랜차이즈 꿀조합 위키',
   description: '서브웨이부터 시작하는 꿀조합 카드. 30초 안에 골라보세요.',
   manifest: '/manifest.json',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: '맛잘알 — 프랜차이즈 꿀조합 위키',
+    description: '서브웨이부터 시작하는 꿀조합 카드. 30초 안에 골라보세요.',
+    url: '/',
+    siteName: '맛잘알',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: '맛잘알 프랜차이즈 꿀조합 카드',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '맛잘알 — 프랜차이즈 꿀조합 위키',
+    description: '서브웨이부터 시작하는 꿀조합 카드. 30초 안에 골라보세요.',
+    images: ['/opengraph-image'],
+  },
   appleWebApp: {
     capable: true,
     title: '맛잘알',

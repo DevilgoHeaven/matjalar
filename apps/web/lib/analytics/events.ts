@@ -23,6 +23,7 @@ export type EventDescriptor =
       target_type: 'combo' | 'ranking' | 'quiz_result';
       target_id?: string;
       channel: 'native' | 'clipboard' | 'kakao' | 'image' | 'fallback';
+      share_url_path?: string;
     }
   | { type: 'ranking_view'; ranking_kind: string; count: number }
   | { type: 'quiz_result_share'; result_kind: string; combo_id?: string }

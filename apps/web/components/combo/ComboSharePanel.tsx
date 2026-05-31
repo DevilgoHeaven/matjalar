@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { buildTrackedSharePath } from '@mzr/db';
 import { trackEvent } from '@/lib/analytics/events';
 
 interface ComboSharePanelProps {
@@ -25,11 +26,28 @@ export function ComboSharePanel({
   const [showText, setShowText] = useState(false);
   const [fallbackText, setFallbackText] = useState(orderText);
 
-  const shareUrl = useMemo(() => {
-    if (typeof window === 'undefined') return `/combo/${comboId}`;
-    return `${window.location.origin}/combo/${comboId}`;
-  }, [comboId]);
+  const basePath = `/combo/${comboId}`;
   const imageUrl = `/combo/${comboId}/opengraph-image`;
+  const imageSharePath = buildTrackedSharePath({
+    path: basePath,
+    surface: 'combo',
+    channel: 'image',
+    content: comboId,
+  });
+
+  const shareUrlFor = useMemo(
+    () => (channel: 'native' | 'clipboard' | 'fallback') => {
+      const trackedPath = buildTrackedSharePath({
+        path: basePath,
+        surface: 'combo',
+        channel,
+        content: comboId,
+      });
+      if (typeof window === 'undefined') return trackedPath;
+      return `${window.location.origin}${trackedPath}`;
+    },
+    [basePath, comboId]
+  );
 
   async function copyOrder() {
     setIsBusy(true);
@@ -43,16 +61,19 @@ export function ComboSharePanel({
 
   async function shareCombo() {
     setIsBusy(true);
-    const text = `${shareText}\n${title}\n${orderSummary}\n${shareUrl}`;
+    const clipboardUrl = shareUrlFor('clipboard');
+    const text = `${shareText}\n${title}\n${orderSummary}\n${clipboardUrl}`;
     setFallbackText(text);
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title, text: `${shareText}\n${orderSummary}`, url: shareUrl });
+        const nativeUrl = shareUrlFor('native');
+        await navigator.share({ title, text: `${shareText}\n${orderSummary}`, url: nativeUrl });
         void trackEvent({
           type: 'share_click',
           target_type: 'combo',
           target_id: comboId,
           channel: 'native',
+          share_url_path: new URL(nativeUrl).pathname + new URL(nativeUrl).search,
         });
         setState('shared');
       } else {
@@ -62,6 +83,12 @@ export function ComboSharePanel({
           target_type: 'combo',
           target_id: comboId,
           channel: ok ? 'clipboard' : 'fallback',
+          share_url_path: buildTrackedSharePath({
+            path: basePath,
+            surface: 'combo',
+            channel: ok ? 'clipboard' : 'fallback',
+            content: comboId,
+          }),
         });
         setShowText(!ok);
         setState(ok ? 'copied' : 'fallback');
@@ -73,6 +100,12 @@ export function ComboSharePanel({
         target_type: 'combo',
         target_id: comboId,
         channel: ok ? 'clipboard' : 'fallback',
+        share_url_path: buildTrackedSharePath({
+          path: basePath,
+          surface: 'combo',
+          channel: ok ? 'clipboard' : 'fallback',
+          content: comboId,
+        }),
       });
       setShowText(!ok);
       setState(ok ? 'copied' : 'fallback');
@@ -131,6 +164,7 @@ export function ComboSharePanel({
               target_type: 'combo',
               target_id: comboId,
               channel: 'image',
+              share_url_path: imageSharePath,
             })
           }
           className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-3 text-sm font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 sm:col-span-1"

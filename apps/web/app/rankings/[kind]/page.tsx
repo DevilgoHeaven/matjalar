@@ -22,13 +22,32 @@ export async function generateMetadata({
   }
 
   const definition = RANKING_DEFINITIONS[kind];
+  const title = `${definition.label} 랭킹 - 맛잘알`;
   return {
-    title: `${definition.label} 랭킹 - 맛잘알`,
+    title,
     description: definition.description,
+    alternates: {
+      canonical: `/rankings/${kind}`,
+    },
     openGraph: {
-      title: `${definition.label} 랭킹 - 맛잘알`,
+      title,
       description: definition.description,
+      url: `/rankings/${kind}`,
       type: 'website',
+      images: [
+        {
+          url: `/rankings/${kind}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${definition.label} 랭킹 맛잘알 공유 이미지`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: definition.description,
+      images: [`/rankings/${kind}/opengraph-image`],
     },
   };
 }
