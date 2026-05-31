@@ -1,0 +1,39 @@
+# lefthook — Git 훅 매니저 (Go 단일 바이너리, husky 보다 빠름)
+# 설치: pnpm dlx lefthook install
+#
+# Windows 환경에서 git hook 은 sh 로 실행되므로 PNPM_HOME 을 명시적으로 PATH 에 prepend.
+
+pre-commit:
+  parallel: true
+  commands:
+    typecheck:
+      glob: "*.{ts,tsx}"
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm tsc -b --noEmit
+    lint:
+      glob: "*.{ts,tsx,md,json,yml}"
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm lint
+    vitest-changed:
+      glob: "packages/db/**/*.ts"
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm --filter "@mzr/db" test --run
+
+pre-push:
+  parallel: true
+  commands:
+    audit-high:
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm audit --audit-level=high
+    typecheck-all:
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm tsc -b --noEmit
+    test-all:
+      env:
+        PATH: "{$HOME}/AppData/Local/pnpm:{$LOCALAPPDATA}/pnpm:{$PATH}"
+      run: pnpm test

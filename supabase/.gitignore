@@ -1,0 +1,4 @@
+# Supabase CLI 로컬 산출물 — git 에 포함 금지
+.branches
+.temp
+.env

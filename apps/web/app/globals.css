@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 전역 스타일 — 디자인 토큰은 packages/ui/tokens 에서 관리 */
+:root {
+  /* 메인 액션 색 (PRD §12) */
+  --color-action: #111111;
+  /* 찜 하트 핑크/빨강 */
+  --color-bookmark: #ff3d6e;
+  /* exclude 옵션 빨강 (R-14, ReceiptBox 적용) */
+  --color-exclude: #e53935;
+}
+
+html,
+body {
+  /* 한국어 본문 폰트 — Pretendard Variable */
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 모바일 우선 — 키오스크 앞에서 폰으로 보는 시나리오 */
+body {
+  min-height: 100dvh;
+  background: #fafafa;
+  color: #111111;
+}

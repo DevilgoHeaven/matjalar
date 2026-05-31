@@ -1,0 +1,4 @@
+# pnpm 워크스페이스 정의 — Turborepo가 이 위에서 task orchestration 수행
+packages:
+  - "apps/*"
+  - "packages/*"
