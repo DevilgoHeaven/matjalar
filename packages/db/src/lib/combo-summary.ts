@@ -25,7 +25,15 @@ export type ComboOption = {
 };
 
 /** 브랜드 슬러그 유니온 타입 */
-type BrandSlug = 'subway' | 'gongcha' | 'starbucks' | 'cvs';
+type BrandSlug =
+  | 'subway'
+  | 'gongcha'
+  | 'starbucks'
+  | 'cvs'
+  | 'gs25'
+  | 'cu'
+  | 'mcdonalds'
+  | 'burgerking';
 
 /**
  * buildCardSummary 의 입력 파라미터 타입
@@ -166,18 +174,50 @@ function buildStarbucksSummary(
 /**
  * 편의점(CVS) 카드 요약을 생성한다.
  *
- * PRD §6 템플릿: `${메인} · ${추가} · ${조리}`
+ * PRD §6 템플릿: `${메인} · ${추가} · ${조리/상황}`
  */
 function buildCvsSummary(
   menuName: string,
   options: ComboOption[]
 ): string {
   const extra = firstMatchingGroup(options, ['추가', '사이드', '추가구성']);
-  const cooking = firstMatchingGroup(options, ['조리', '조리방법', '가열']);
+  const cooking = firstMatchingGroup(options, [
+    '조리',
+    '조리방법',
+    '가열',
+    '상황',
+  ]);
 
   const parts: string[] = [nfc(menuName)];
   if (extra) parts.push(extra);
   if (cooking) parts.push(cooking);
+
+  return parts.join(' · ');
+}
+
+/**
+ * 버거 브랜드 카드 요약을 생성한다.
+ *
+ * 템플릿: `${버거} · ${사이드} · ${음료/쿠폰}`
+ */
+function buildBurgerSummary(
+  menuName: string,
+  variantName: string,
+  options: ComboOption[]
+): string {
+  const side = firstMatchingGroup(options, ['사이드', '감자튀김', '디저트']);
+  const drinkOrCoupon = firstMatchingGroup(options, [
+    '음료',
+    '드링크',
+    '쿠폰',
+    '혜택',
+  ]);
+
+  const parts: string[] = [nfc(menuName)];
+  const variant = nfc(variantName);
+  if (variant && variant !== '단품') parts[0] = `${parts[0]} ${variant}`;
+  if (side) parts.push(side);
+  if (drinkOrCoupon) parts.push(drinkOrCoupon);
 
   return parts.join(' · ');
 }
@@ -190,6 +230,7 @@ function buildCvsSummary(
  *  - gongcha: "밀크폼 블랙티 · 반당 · 소량"
  *  - starbucks: "카라멜 마키아또 · 샷 추가 · 귀리 · 휘핑 없음"
  *  - cvs: "삼각김밥 · 참치마요 · 전자레인지"
+ *  - burgerking: "와퍼 세트 · 감자튀김 · 앱쿠폰"
  *
  * @param input  브랜드 슬러그, 메뉴명, 변형명, 옵션 목록
  * @returns      한 줄 요약 문자열
@@ -209,7 +250,13 @@ export function buildCardSummary(input: BuildCardSummaryInput): string {
       return buildStarbucksSummary(menuName, options);
 
     case 'cvs':
+    case 'gs25':
+    case 'cu':
       return buildCvsSummary(menuName, options);
+
+    case 'mcdonalds':
+    case 'burgerking':
+      return buildBurgerSummary(menuName, variantName, options);
 
     default: {
       // 컴파일타임에 exhaustive check: 새 브랜드 추가 시 여기서 에러 발생

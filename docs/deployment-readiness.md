@@ -42,7 +42,7 @@
   - `LEGAL_OPERATOR_ADDRESS`
   - `LEGAL_PRIVACY_OFFICER_NAME`
   - `LEGAL_PRIVACY_OFFICER_EMAIL`
-- [ ] `SUPABASE_DB_URL` GitHub Actions secret 등록
+- [ ] `SUPABASE_DB_URL`, `DB_BACKUP_GPG_PASSPHRASE` GitHub Actions secret 등록
   - Supabase DB password 또는 Dashboard direct connection string 필요
 - [ ] `DISCORD_WEBHOOK_URL` 발급 및 GitHub Actions secret 등록
 - [ ] Supabase Auth URL Configuration

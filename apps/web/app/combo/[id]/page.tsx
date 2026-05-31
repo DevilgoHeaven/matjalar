@@ -5,6 +5,7 @@ import { CATEGORY_TOKENS } from '@mzr/ui';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { BookmarkButton } from '@/components/combo/BookmarkButton';
 import { ComboSharePanel } from '@/components/combo/ComboSharePanel';
+import { CorrectionReportPanel } from '@/components/combo/CorrectionReportPanel';
 import { FeaturedReview } from '@/components/combo/FeaturedReview';
 import { ReportButton } from '@/components/combo/ReportButton';
 import { ReceiptBox } from '@/components/combo/ReceiptBox';
@@ -106,6 +107,8 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
               priceStatus={combo.priceStatus}
               lastVerifiedAt={combo.brand.lastVerifiedAt}
               reviewCount={combo.stats.reviewCount}
+              sourceCount={combo.sourceSummary.count}
+              lastSourceObservedAt={combo.sourceSummary.lastObservedAt}
             />
           </div>
 
@@ -152,6 +155,8 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
           estimatedPrice={combo.estimatedPrice}
           priceStatus={combo.priceStatus}
         />
+
+        <CorrectionReportPanel targetType="combo" targetId={combo.id} />
 
         <FeaturedReview
           review={combo.featuredReview}

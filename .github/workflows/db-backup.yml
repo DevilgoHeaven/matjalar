@@ -1,17 +1,18 @@
 # 맛잘알 — Supabase DB 일일 백업
 #
 # WHY: Supabase 자체 백업과 별개로 프로젝트 외부 복구 사본을 유지한다.
-# 매일 KST 04:00 (UTC 19:00) 에 pg_dump 로 schema+data 를 떠서 GitHub Actions artifact 로 7일 보존.
+# 매일 KST 04:00 (UTC 19:00) 에 public schema dump 를 암호화해 GitHub Actions artifact 로 7일 보존.
 # catalog-crawl 워크플로(KST 03:00) 직후 시점이므로 그날 카탈로그 변경 반영 후 백업.
 #
 # Secrets (사용자 책임):
 #  - SUPABASE_DB_URL — Supabase Dashboard > Project Settings > Database > Connection string (URI / direct)
 #                      포맷: postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
 #                      ※ pooler 가 아닌 direct(:5432) URL 권장 (pg_dump 호환성)
+#  - DB_BACKUP_GPG_PASSPHRASE — artifact 업로드 전 symmetric encryption 에 사용
 #  - DISCORD_WEBHOOK_URL — (선택) 백업 실패 시 알림
 #
 # 복원 절차 (수동):
-#   gunzip < backup-YYYY-MM-DD.sql.gz | psql "$SUPABASE_DB_URL"
+#   gpg --batch --decrypt backup-YYYY-MM-DD.sql.gz.gpg | gunzip | psql "$SUPABASE_DB_URL"
 
 name: DB Backup (daily)
 
@@ -27,7 +28,7 @@ concurrency:
 
 jobs:
   backup:
-    name: pg_dump → artifact
+    name: pg_dump public → encrypted artifact
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -47,26 +48,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
 
-      - name: Dump database (schema + data)
+      - name: Dump public schema (schema + data)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DB_BACKUP_GPG_PASSPHRASE: ${{ secrets.DB_BACKUP_GPG_PASSPHRASE }}
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then
             echo "::error::SUPABASE_DB_URL secret 미설정. 백업 중단."
             exit 1
           fi
+          if [ -z "$DB_BACKUP_GPG_PASSPHRASE" ]; then
+            echo "::error::DB_BACKUP_GPG_PASSPHRASE secret 미설정. 암호화되지 않은 백업 artifact 업로드를 방지합니다."
+            exit 1
+          fi
           DATE=$(date -u +%Y-%m-%d)
-          # --no-owner / --no-privileges: Supabase 가 자체 role 을 관리하므로 owner 정보 제외 시 다른 프로젝트로도 복원 가능
-          pg_dump --no-owner --no-privileges --clean --if-exists \
+          # Supabase 관리 schema(auth/storage/vault 등)는 제외하고 앱 public schema만 백업한다.
+          pg_dump --schema=public --no-owner --no-privileges --clean --if-exists \
             "$SUPABASE_DB_URL" | gzip -9 > "backup-${DATE}.sql.gz"
-          echo "BACKUP_SIZE=$(du -h backup-${DATE}.sql.gz | cut -f1)" >> $GITHUB_ENV
+          printf '%s' "$DB_BACKUP_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+            --symmetric --cipher-algo AES256 --passphrase-fd 0 \
+            --output "backup-${DATE}.sql.gz.gpg" "backup-${DATE}.sql.gz"
+          rm -f "backup-${DATE}.sql.gz"
+          echo "BACKUP_SIZE=$(du -h backup-${DATE}.sql.gz.gpg | cut -f1)" >> $GITHUB_ENV
           echo "BACKUP_DATE=${DATE}" >> $GITHUB_ENV
 
-      - name: Upload artifact
+      - name: Upload encrypted artifact
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ env.BACKUP_DATE }}-${{ github.run_id }}
-          path: backup-*.sql.gz
+          path: backup-*.sql.gz.gpg
           retention-days: 7
           if-no-files-found: error
 

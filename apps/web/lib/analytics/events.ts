@@ -27,7 +27,13 @@ export type EventDescriptor =
   | { type: 'ranking_view'; ranking_kind: string; count: number }
   | { type: 'quiz_result_share'; result_kind: string; combo_id?: string }
   | { type: 'client_error'; message: string; stack?: string; url?: string }
-  | { type: 'report_submit'; target_type: 'combo' | 'review'; target_id: string };
+  | { type: 'report_submit'; target_type: 'combo' | 'review'; target_id: string }
+  | {
+      type: 'correction_submit';
+      target_type: 'combo' | 'brand' | 'menu';
+      target_id: string;
+      report_kind: 'price' | 'sold_out' | 'option_changed' | 'combo_feedback';
+    };
 
 export async function trackEvent(descriptor: EventDescriptor): Promise<void> {
   if (typeof window === 'undefined') return;

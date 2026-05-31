@@ -24,7 +24,7 @@
 | **R-17** | client_error sink 부재 | `apps/web/components/analytics/ClientErrorSink.tsx` 신설 + `layout.tsx` 최상단 마운트. `window.onerror` + `unhandledrejection` 핸들러로 `events.client_error` sink (4KB cap pre-truncate, 무한 루프 방어) | dev 실행 후 `throw new Error('test')` 또는 `Promise.reject` 강제 발생 → `events` 테이블에 `client_error` row 도착 확인 |
 | **R-22** | events anon INSERT 무제한 | `20260516000001_rls_rpc_hardening.sql` 의 `insert_event()` RPC + `pg_column_size(payload) < 4096` check (기존 `20260510000001_security_hardening.sql:16`). `app/api/events/route.ts` 가 zod 로 게이트 | anon key 로 `events.insert()` 직접 호출 시 권한 거부 확인. payload 5KB 시 INSERT 거부 확인 |
 | **R-23** | 카카오 비즈앱 검수 누락 | 사용자 직접 카카오 developers 콘솔에서 비즈앱 전환 + 동의항목 검수 완료. `AuthModalProvider.tsx:241` scopes 에 `account_email` 추가. `20260518000002_handle_new_user_email.sql` 폴백 체인 | Supabase Dashboard scope 갱신 후 신규 가입 → `app_users.email` 에 값 들어옴 확인 |
-| **R-24** | Supabase 백업을 프로젝트 내부에만 의존 | `.github/workflows/db-backup.yml` 매일 KST 04:00 pg_dump (postgresql-client-17) + 7일 artifact + Discord 알림. Supabase 자동 백업과 별개로 오프사이트 복구 사본을 유지 | 1회 수동 트리거(`gh workflow run db-backup.yml`) 성공 + artifact 다운로드 확인 |
+| **R-24** | Supabase 백업을 프로젝트 내부에만 의존 | `.github/workflows/db-backup.yml` 매일 KST 04:00 public schema pg_dump (postgresql-client-17) + GPG 암호화 artifact 7일 보존 + Discord 알림. Supabase 자동 백업과 별개로 오프사이트 복구 사본을 유지 | `SUPABASE_DB_URL`, `DB_BACKUP_GPG_PASSPHRASE` 등록 후 1회 수동 트리거(`gh workflow run db-backup.yml`) 성공 + 암호화 artifact 복호화 확인 |
 | **R-26** | error.tsx / not-found.tsx 부재 | `apps/web/app/{error,not-found}.tsx` 신설 (M3~M9 commit). 추가로 `apps/web/app/offline/page.tsx` (Serwist fallback) | DB 실패 강제 → `error.tsx` 표시. 존재 X URL → `not-found.tsx`. SW 활성 + 오프라인 → `/offline` |
 
 ## 3. 위험 매트릭스 — 남은 위험 (출시 후 모니터링)
@@ -85,7 +85,7 @@ values (null, 'fake', 'client_error', '{}'::jsonb);
 머지 직후 (사용자 책임):
 - [ ] Supabase Dashboard > Auth > Providers > Kakao > Scopes 에 `account_email` 추가
 - [ ] `pnpm db:push` (또는 SQL Editor) 로 마이그레이션 14건 적용
-- [ ] GitHub Actions secrets 등록: `SUPABASE_DB_URL`, `DISCORD_WEBHOOK_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] GitHub Actions secrets 등록: `SUPABASE_DB_URL`, `DB_BACKUP_GPG_PASSPHRASE`, `DISCORD_WEBHOOK_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] `.env.local` 생성 (README §2 11개 키)
 - [ ] db-backup.yml 1회 수동 트리거 → artifact 다운로드 확인 (R-24)
 - [ ] 본인 admin 승격 SQL 1회 — `update app_users set role='admin' where id='<my-uid>';`

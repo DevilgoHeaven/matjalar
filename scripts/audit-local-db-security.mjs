@@ -53,6 +53,30 @@ function main() {
       expected: 't',
     },
     {
+      name: 'anon cannot execute submit_correction_report RPC directly',
+      actual: sqlScalar(
+        container,
+        "select has_function_privilege('anon', 'public.submit_correction_report(text,text,uuid,text,text,text)', 'execute')"
+      ),
+      expected: 'f',
+    },
+    {
+      name: 'authenticated cannot execute submit_correction_report RPC directly',
+      actual: sqlScalar(
+        container,
+        "select has_function_privilege('authenticated', 'public.submit_correction_report(text,text,uuid,text,text,text)', 'execute')"
+      ),
+      expected: 'f',
+    },
+    {
+      name: 'service_role can execute submit_correction_report RPC',
+      actual: sqlScalar(
+        container,
+        "select has_function_privilege('service_role', 'public.submit_correction_report(text,text,uuid,text,text,text)', 'execute')"
+      ),
+      expected: 't',
+    },
+    {
       name: 'anon cannot execute update_combo_stats RPC',
       actual: sqlScalar(
         container,

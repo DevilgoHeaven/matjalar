@@ -20,3 +20,27 @@ export type { PriceOption } from './lib/combo-price';
 // 조합 고유 서명(SHA-256 hex) 생성
 export { buildComboSignature } from './lib/combo-signature';
 export type { SignatureOption } from './lib/combo-signature';
+
+// 관리자 성장 분석 집계
+export { computeAdminAnalytics } from './lib/admin-analytics';
+export type {
+  AdminAnalyticsBucket,
+  AdminAnalyticsClientError,
+  AdminAnalyticsComboMetric,
+  AdminAnalyticsEvent,
+  AdminAnalyticsSummary,
+  AdminAnalyticsWindow,
+} from './lib/admin-analytics';
+
+// v1.6 콘텐츠 확장 후보 seed backlog
+export {
+  V16_CONTENT_SOURCE_URLS,
+  V16_GROWTH_COMBO_SEEDS,
+  summarizeGrowthComboSeeds,
+} from './lib/content-expansion-seeds';
+export type {
+  GrowthComboSeed,
+  GrowthComboSeedSummary,
+  GrowthSeedBrand,
+  GrowthSeedCategory,
+} from './lib/content-expansion-seeds';

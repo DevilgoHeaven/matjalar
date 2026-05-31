@@ -35,6 +35,13 @@ export default [
     },
   },
   {
+    // 공개 제보 API 는 service-role 서버 경유로만 DB RPC 를 호출한다.
+    files: ['app/api/corrections/route.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  },
+  {
     ignores: ['.next/**', 'node_modules/**', 'public/sw.js', 'next-env.d.ts'],
   },
 ];

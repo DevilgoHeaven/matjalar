@@ -4,54 +4,16 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { PublicCombo } from '@/lib/combo/public-combos';
 import { trackEvent } from '@/lib/analytics/events';
-
-type QuizPreference = 'budget' | 'beginner' | 'diet' | 'spicy' | 'hearty';
-
-const PREFERENCES: {
-  id: QuizPreference;
-  label: string;
-  description: string;
-  tagSlug?: string;
-}[] = [
-  {
-    id: 'budget',
-    label: '가격 먼저',
-    description: '만원 안쪽이면 더 좋아요.',
-    tagSlug: 'cheap',
-  },
-  {
-    id: 'beginner',
-    label: '실패 방지',
-    description: '처음 주문해도 안전한 쪽.',
-    tagSlug: 'beginner',
-  },
-  {
-    id: 'diet',
-    label: '가볍게',
-    description: '소스와 토핑 부담을 줄이고 싶어요.',
-    tagSlug: 'diet',
-  },
-  {
-    id: 'spicy',
-    label: '매운맛',
-    description: '끝맛이 확실한 조합이 좋아요.',
-    tagSlug: 'spicy',
-  },
-  {
-    id: 'hearty',
-    label: '든든함',
-    description: '점심 한 끼로 오래 버티고 싶어요.',
-    tagSlug: 'hearty',
-  },
-];
+import { QUIZ_PREFERENCES, type QuizPreference } from './preferences';
 
 interface QuizClientProps {
   combos: PublicCombo[];
+  initialPreferences?: QuizPreference[];
 }
 
-export function QuizClient({ combos }: QuizClientProps) {
+export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
   const [selected, setSelected] = useState<Set<QuizPreference>>(
-    () => new Set(['beginner'])
+    () => new Set(initialPreferences?.length ? initialPreferences : ['beginner'])
   );
   const [message, setMessage] = useState('');
 
@@ -75,14 +37,17 @@ export function QuizClient({ combos }: QuizClientProps) {
 
   async function shareResult() {
     if (!primary) return;
+    const selectedIds = [...selected].sort();
+    const path = `/quiz?prefs=${encodeURIComponent(selectedIds.join(','))}`;
     const url =
-      typeof window === 'undefined' ? '/quiz' : `${window.location.origin}/quiz`;
-    const labels = PREFERENCES.filter((item) => selected.has(item.id))
+      typeof window === 'undefined' ? path : `${window.location.origin}${path}`;
+    const labels = QUIZ_PREFERENCES.filter((item) => selected.has(item.id))
       .map((item) => item.label)
       .join(', ');
     const text = `내 맛잘알 결과: ${labels}\n추천은 ${primary.title}\n${url}`;
 
     try {
+      let channel: 'native' | 'clipboard' | 'fallback' = 'fallback';
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({
           title: '맛잘알 취향 결과',
@@ -90,16 +55,32 @@ export function QuizClient({ combos }: QuizClientProps) {
           url,
         });
         setMessage('공유창을 열었어요.');
+        channel = 'native';
       } else {
-        setMessage((await copyText(text)) ? '결과를 복사했어요.' : text);
+        const copied = await copyText(text);
+        setMessage(copied ? '결과를 복사했어요.' : text);
+        channel = copied ? 'clipboard' : 'fallback';
       }
       void trackEvent({
         type: 'quiz_result_share',
-        result_kind: [...selected].join(','),
+        result_kind: selectedIds.join(','),
         combo_id: primary.id,
       });
+      void trackEvent({
+        type: 'share_click',
+        target_type: 'quiz_result',
+        target_id: selectedIds.join(','),
+        channel,
+      });
     } catch {
-      setMessage((await copyText(text)) ? '결과를 복사했어요.' : text);
+      const copied = await copyText(text);
+      setMessage(copied ? '결과를 복사했어요.' : text);
+      void trackEvent({
+        type: 'share_click',
+        target_type: 'quiz_result',
+        target_id: selectedIds.join(','),
+        channel: copied ? 'clipboard' : 'fallback',
+      });
     }
   }
 
@@ -108,7 +89,7 @@ export function QuizClient({ combos }: QuizClientProps) {
       <section className="rounded-lg border border-stone-200 bg-white p-4">
         <h2 className="text-base font-black text-action">오늘의 기준</h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {PREFERENCES.map((preference) => {
+          {QUIZ_PREFERENCES.map((preference) => {
             const active = selected.has(preference.id);
             return (
               <button
@@ -209,13 +190,13 @@ export function QuizClient({ combos }: QuizClientProps) {
 }
 
 function rankQuizCombos(combos: PublicCombo[], selected: Set<QuizPreference>) {
-  const preferences = PREFERENCES.filter((item) => selected.has(item.id));
+  const preferences = QUIZ_PREFERENCES.filter((item) => selected.has(item.id));
   return [...combos].sort((a, b) => scoreCombo(b, preferences) - scoreCombo(a, preferences));
 }
 
 function scoreCombo(
   combo: PublicCombo,
-  preferences: typeof PREFERENCES
+  preferences: typeof QUIZ_PREFERENCES
 ): number {
   let score = combo.stats.hotScore + combo.stats.voteCount * 0.8 + combo.bookmarkCount;
   for (const preference of preferences) {

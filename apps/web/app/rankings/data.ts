@@ -69,17 +69,21 @@ export async function getRankingPageData(kindParam: string | null): Promise<Rank
 }
 
 export function parseRankingKind(value: string | null | undefined): RankingKind {
-  if (
+  if (isRankingKind(value)) {
+    return value;
+  }
+  return 'hot';
+}
+
+export function isRankingKind(value: string | null | undefined): value is RankingKind {
+  return (
     value === 'budget' ||
     value === 'beginner' ||
     value === 'diet' ||
     value === 'spicy' ||
     value === 'hearty' ||
     value === 'hot'
-  ) {
-    return value;
-  }
-  return 'hot';
+  );
 }
 
 function rankCombos(combos: PublicCombo[], kind: RankingKind) {

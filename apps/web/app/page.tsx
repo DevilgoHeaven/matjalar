@@ -145,13 +145,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <section className="mx-auto max-w-3xl px-5 pb-6">
         <div className="grid gap-2 sm:grid-cols-3">
           <QuickLink
-            href="/rankings?kind=budget"
+            href="/rankings/budget"
             eyebrow="만원컷"
             title="가성비 먼저"
             body="가격 확인중은 빼고 낮은 예상가부터 봅니다."
           />
           <QuickLink
-            href="/rankings?kind=beginner"
+            href="/rankings/beginner"
             eyebrow="초보추천"
             title="주문 실패 줄이기"
             body="처음이어도 덜 헤매는 안전 조합만 모았어요."

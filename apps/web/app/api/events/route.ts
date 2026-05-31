@@ -24,6 +24,7 @@ const eventTypeSchema = z.enum([
   'quiz_result_share',
   'client_error',
   'report_submit',
+  'correction_submit',
 ]);
 
 const eventSchema = z.object({

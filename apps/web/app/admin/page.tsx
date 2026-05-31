@@ -20,11 +20,11 @@ export default async function AdminDashboardPage() {
             운영 대시보드
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            승인, 신고, 카탈로그 변경, 유저 상태를 한 화면에서 확인합니다.
+            승인, 신고, 제보, 데이터 신뢰도, 성장 지표를 한 화면에서 확인합니다.
           </p>
         </header>
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
           <MetricCard
             label="승인 대기 조합"
             value={data.pendingCombos}
@@ -39,6 +39,21 @@ export default async function AdminDashboardPage() {
             label="카탈로그 변경"
             value={data.pendingCatalogChanges}
             href="/admin/catalog-changes"
+          />
+          <MetricCard
+            label="최근 제보"
+            value={data.pendingCorrections}
+            href="/admin/corrections"
+          />
+          <MetricCard
+            label="미검증 출처"
+            value={data.unverifiedSources}
+            href="/admin/source-refs"
+          />
+          <MetricCard
+            label="확장 후보"
+            value={data.growthBacklog}
+            href="/admin/content-backlog"
           />
           <MetricCard
             label="정지 유저"
@@ -65,6 +80,26 @@ export default async function AdminDashboardPage() {
                 href="/admin/catalog-changes"
                 title="카탈로그 변경 승인"
                 description="크롤러가 감지한 메뉴와 옵션 변경을 production에 반영합니다."
+              />
+              <AdminAction
+                href="/admin/source-refs"
+                title="데이터 신뢰도"
+                description="출처, 확인일, 가격 상태를 보고 exact 가격 근거를 점검합니다."
+              />
+              <AdminAction
+                href="/admin/corrections"
+                title="최근 제보"
+                description="비회원 가격·품절·옵션 변경 제보를 검토하고 처리합니다."
+              />
+              <AdminAction
+                href="/admin/analytics"
+                title="성장 지표"
+                description="세션, 상세 전환, 주문문 복사, 공유, 랭킹, 퀴즈 반응을 봅니다."
+              />
+              <AdminAction
+                href="/admin/content-backlog"
+                title="콘텐츠 확장 후보"
+                description="GS25, CU, 맥도날드, 버거킹 후보를 검증하고 공개 승격 준비합니다."
               />
               <AdminAction
                 href="/admin/users"

@@ -3,14 +3,23 @@ import Link from 'next/link';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { QuizClient } from './QuizClient';
 import { getQuizPageData } from './data';
+import { parseQuizPreferences } from './preferences';
 
 export const metadata: Metadata = {
   title: '취향 퀴즈 - 맛잘알',
   description: '가격, 초보추천, 매운맛, 든든함 기준으로 오늘 먹을 조합을 고르세요.',
 };
 
-export default async function QuizPage() {
-  const combos = await getQuizPageData();
+interface QuizPageProps {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function QuizPage({ searchParams }: QuizPageProps) {
+  const [combos, resolvedSearchParams] = await Promise.all([
+    getQuizPageData(),
+    searchParams,
+  ]);
+  const prefs = parseQuizPreferences(getFirstParam(resolvedSearchParams?.prefs));
 
   return (
     <main className="min-h-dvh bg-[#FAFAFA]">
@@ -32,8 +41,13 @@ export default async function QuizPage() {
         </div>
       </header>
       <section className="mx-auto max-w-3xl px-5 py-6">
-        <QuizClient combos={combos} />
+        <QuizClient combos={combos} initialPreferences={prefs} />
       </section>
     </main>
   );
+}
+
+function getFirstParam(value: string | string[] | undefined): string | null {
+  const first = Array.isArray(value) ? value[0] : value;
+  return first ?? null;
 }

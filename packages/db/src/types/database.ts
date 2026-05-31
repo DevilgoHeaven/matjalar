@@ -503,6 +503,109 @@ export type Database = {
           },
         ]
       }
+      content_source_refs: {
+        Row: {
+          confidence: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          observed_at: string
+          price_status: string
+          source_kind: string
+          source_url: string | null
+          target_id: string
+          target_type: string
+          title: string
+        }
+        Insert: {
+          confidence?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          observed_at?: string
+          price_status?: string
+          source_kind: string
+          source_url?: string | null
+          target_id: string
+          target_type: string
+          title: string
+        }
+        Update: {
+          confidence?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          observed_at?: string
+          price_status?: string
+          source_kind?: string
+          source_url?: string | null
+          target_id?: string
+          target_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_source_refs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correction_reports: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          report_kind: string
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string
+          source_url: string | null
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          report_kind: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id: string
+          source_url?: string | null
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          report_kind?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string
+          source_url?: string | null
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crawler_runs: {
         Row: {
           changed_count: number
@@ -937,6 +1040,22 @@ export type Database = {
     }
     Functions: {
       ensure_app_user_self: { Args: never; Returns: undefined }
+      insert_event: {
+        Args: {
+          p_payload?: Json
+          p_session_id: string
+          p_type: Database["public"]["Enums"]["events_type"]
+        }
+        Returns: undefined
+      }
+      get_public_source_ref_summaries: {
+        Args: { p_target_ids: string[]; p_target_type: string }
+        Returns: {
+          last_observed_at: string | null
+          source_count: number
+          target_id: string
+        }[]
+      }
       pgroonga_command:
         | { Args: { groongacommand: string }; Returns: string }
         | {
@@ -1363,6 +1482,17 @@ export type Database = {
         | { Args: never; Returns: number }
         | { Args: { indexname: unknown }; Returns: number }
       set_admin_claim: { Args: { event: Json }; Returns: Json }
+      submit_correction_report: {
+        Args: {
+          p_note?: string
+          p_report_kind: string
+          p_session_id: string
+          p_source_url?: string
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: string
+      }
       update_combo_stats: {
         Args: { p_combo: string; p_delta: number; p_kind: string }
         Returns: undefined
@@ -1386,6 +1516,7 @@ export type Database = {
         | "quiz_result_share"
         | "client_error"
         | "report_submit"
+        | "correction_submit"
     }
     CompositeTypes: {
       pgroonga_condition: {
@@ -1546,8 +1677,13 @@ export const Constants = {
         "review_submit",
         "combo_register_started",
         "combo_register_submitted",
+        "order_copy",
+        "share_click",
+        "ranking_view",
+        "quiz_result_share",
         "client_error",
         "report_submit",
+        "correction_submit",
       ],
     },
   },

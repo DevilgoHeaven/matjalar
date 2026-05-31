@@ -1,6 +1,6 @@
 import 'server-only';
 
-import type { Database } from '@mzr/db';
+import { V16_GROWTH_COMBO_SEEDS, type Database } from '@mzr/db';
 import { assertActiveAdminUser } from '@/app/admin/_lib/auth';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { asSupabaseQueryClient } from '@/lib/supabase/query';
@@ -12,6 +12,8 @@ type ComboStatusRow = Pick<TableRow<'combos'>, 'status'>;
 type ReportStatusRow = Pick<TableRow<'reports'>, 'status'>;
 type CatalogChangeStatusRow = Pick<TableRow<'catalog_change_logs'>, 'status'>;
 type AppUserStatusRow = Pick<TableRow<'app_users'>, 'status'>;
+type CorrectionReportStatusRow = Pick<TableRow<'correction_reports'>, 'status'>;
+type SourceRefStatusRow = Pick<TableRow<'content_source_refs'>, 'confidence'>;
 type CrawlerRunRow = Pick<
   TableRow<'crawler_runs'>,
   'source_name' | 'status' | 'started_at' | 'finished_at'
@@ -21,6 +23,9 @@ export interface AdminDashboardData {
   pendingCombos: number;
   pendingReports: number;
   pendingCatalogChanges: number;
+  pendingCorrections: number;
+  unverifiedSources: number;
+  growthBacklog: number;
   suspendedUsers: number;
   latestCrawlerRun: {
     sourceName: string;
@@ -41,6 +46,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     { data: combos, error: combosError },
     { data: reports, error: reportsError },
     { data: catalogChanges, error: catalogChangesError },
+    { data: correctionReports, error: correctionReportsError },
+    { data: sourceRefs, error: sourceRefsError },
     { data: users, error: usersError },
     { data: crawlerRuns, error: crawlerRunsError },
   ] = await Promise.all([
@@ -50,6 +57,14 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .from('catalog_change_logs')
       .select<CatalogChangeStatusRow>('status')
       .eq('status', 'pending'),
+    db
+      .from('correction_reports')
+      .select<CorrectionReportStatusRow>('status')
+      .eq('status', 'pending'),
+    db
+      .from('content_source_refs')
+      .select<SourceRefStatusRow>('confidence')
+      .eq('confidence', 'unverified'),
     db.from('app_users').select<AppUserStatusRow>('status').eq('status', 'suspended'),
     db
       .from('crawler_runs')
@@ -61,6 +76,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   if (combosError) throw new Error(combosError.message);
   if (reportsError) throw new Error(reportsError.message);
   if (catalogChangesError) throw new Error(catalogChangesError.message);
+  if (correctionReportsError) throw new Error(correctionReportsError.message);
+  if (sourceRefsError) throw new Error(sourceRefsError.message);
   if (usersError) throw new Error(usersError.message);
   if (crawlerRunsError) throw new Error(crawlerRunsError.message);
 
@@ -70,6 +87,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     pendingCombos: combos?.length ?? 0,
     pendingReports: reports?.length ?? 0,
     pendingCatalogChanges: catalogChanges?.length ?? 0,
+    pendingCorrections: correctionReports?.length ?? 0,
+    unverifiedSources: sourceRefs?.length ?? 0,
+    growthBacklog: V16_GROWTH_COMBO_SEEDS.length,
     suspendedUsers: users?.length ?? 0,
     latestCrawlerRun: latestCrawlerRun
       ? {

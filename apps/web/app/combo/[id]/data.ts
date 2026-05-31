@@ -16,6 +16,11 @@ type ComboOptionRow = TableRow<'combo_options'>;
 type ReviewRow = TableRow<'reviews'>;
 type AppUserRow = TableRow<'app_users'>;
 type BookmarkRow = TableRow<'bookmarks'>;
+type SourceRefSummaryRow = {
+  target_id: string;
+  source_count: number;
+  last_observed_at: string | null;
+};
 
 type ComboMetadataRow = Pick<
   ComboRow,
@@ -112,6 +117,10 @@ export interface ComboDetail {
     averageRating: number;
   };
   options: ComboOptionView[];
+  sourceSummary: {
+    count: number;
+    lastObservedAt: string | null;
+  };
   featuredReview: ReviewView | null;
   reviews: ReviewView[];
   viewer: {
@@ -202,6 +211,7 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
     voteResult,
     bookmarkResult,
     viewerReviewResult,
+    sourceRefSummaryResult,
   ] = await Promise.all([
     db
       .from('brands')
@@ -264,6 +274,10 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
           .eq('user_id', user.id)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
+    db.rpc<SourceRefSummaryRow[]>('get_public_source_ref_summaries', {
+      p_target_type: 'combo',
+      p_target_ids: [combo.id],
+    }),
   ]);
 
   assertNoError(brandResult.error);
@@ -275,6 +289,7 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
   assertNoError(voteResult.error);
   assertNoError(bookmarkResult.error);
   assertNoError(viewerReviewResult.error);
+  assertNoError(sourceRefSummaryResult.error);
 
   const reviews = await enrichReviews(
     supabase,
@@ -311,6 +326,9 @@ export async function getComboDetail(comboId: string): Promise<ComboDetail | nul
       averageRating: statsResult.data?.average_rating ?? 0,
     },
     options: (optionsResult.data ?? []).map(toOptionView),
+    sourceSummary: toSourceRefSummary(
+      (sourceRefSummaryResult.data ?? [])[0] ?? null
+    ),
     featuredReview,
     reviews,
     viewer: {
@@ -339,6 +357,13 @@ function toOptionView(row: OptionViewRow): ComboOptionView {
     optionName: row.option_name_snapshot,
     priceDelta: row.price_delta_snapshot,
     quantity: row.quantity,
+  };
+}
+
+function toSourceRefSummary(row: SourceRefSummaryRow | null) {
+  return {
+    count: row?.source_count ?? 0,
+    lastObservedAt: row?.last_observed_at ?? null,
   };
 }
 

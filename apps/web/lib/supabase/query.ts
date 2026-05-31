@@ -11,6 +11,7 @@ export interface SupabaseQueryResult<T> {
 
 export interface SupabaseQuery<T> extends PromiseLike<SupabaseQueryResult<T>> {
   eq(column: string, value: unknown): SupabaseQuery<T>;
+  gte(column: string, value: unknown): SupabaseQuery<T>;
   ilike(column: string, pattern: string): SupabaseQuery<T>;
   in(column: string, values: readonly unknown[]): SupabaseQuery<T>;
   order(

@@ -25,7 +25,8 @@ create type public.events_type as enum (
   'ranking_view',
   'quiz_result_share',
   'client_error',
-  'report_submit'
+  'report_submit',
+  'correction_submit'
 );
 ```
 
@@ -49,6 +50,7 @@ create type public.events_type as enum (
 | `quiz_result_share` | 취향 퀴즈 결과 공유 | 결과형 바이럴 루프 |
 | `client_error` | window.onerror, unhandledrejection | 에러 모니터링 (R-17) |
 | `report_submit` | submitReport 호출 | 신고 통계 |
+| `correction_submit` | 익명 가격/품절/옵션 제보 접수 | 커뮤니티 데이터 보정 루프 |
 
 ## payload jsonb 스키마 (이벤트별)
 
@@ -69,7 +71,8 @@ type EventPayload =
   | { type: 'ranking_view',          ranking_kind: string, count: number }
   | { type: 'quiz_result_share',     result_kind: string, combo_id?: string }
   | { type: 'client_error',          message: string, stack?: string, url?: string }
-  | { type: 'report_submit',         target_type: 'combo' | 'review', target_id: string };
+  | { type: 'report_submit',         target_type: 'combo' | 'review', target_id: string }
+  | { type: 'correction_submit',     target_type: 'combo' | 'brand' | 'menu', target_id: string, report_kind: 'price' | 'sold_out' | 'option_changed' | 'combo_feedback' };
 ```
 
 ## session_id 생성 규칙

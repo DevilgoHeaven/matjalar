@@ -2,7 +2,7 @@
  * combo-summary.ts 단위 테스트
  *
  * 검증 범위:
- *  - 브랜드별 4가지 happy path (subway / gongcha / starbucks / cvs)
+ *  - 브랜드별 happy path (subway / gongcha / starbucks / cvs / burger)
  *  - "외 N" 표기 — 같은 그룹에 옵션이 2개 이상일 때
  *  - exclude 액션 타입은 카드 요약에 반영되지 않음
  */
@@ -122,10 +122,10 @@ describe('buildCardSummary — 스타벅스', () => {
 // ─────────────────────────────────────────────
 
 describe('buildCardSummary — 편의점(CVS)', () => {
-  it('happy path: 메뉴명·추가·조리 순으로 요약을 생성한다', () => {
+  it('happy path: 메뉴명·추가·조리/상황 순으로 요약을 생성한다', () => {
     const options: ComboOption[] = [
       sel('추가', '참치마요', 0),
-      sel('조리', '전자레인지', 0),
+      sel('상황', '전자레인지', 0),
     ];
 
     const result = buildCardSummary({
@@ -136,6 +136,68 @@ describe('buildCardSummary — 편의점(CVS)', () => {
     });
 
     expect(result).toBe('삼각김밥 · 참치마요 · 전자레인지');
+  });
+
+  it('GS25와 CU도 같은 편의점 요약 템플릿을 사용한다', () => {
+    const options: ComboOption[] = [
+      sel('사이드', '컵라면', 0),
+      sel('조리방법', '따뜻하게', 0),
+    ];
+
+    expect(
+      buildCardSummary({
+        brandSlug: 'gs25',
+        menuName: '도시락',
+        variantName: '',
+        options,
+      })
+    ).toBe('도시락 · 컵라면 · 따뜻하게');
+    expect(
+      buildCardSummary({
+        brandSlug: 'cu',
+        menuName: '김밥',
+        variantName: '',
+        options,
+      })
+    ).toBe('김밥 · 컵라면 · 따뜻하게');
+  });
+});
+
+// ─────────────────────────────────────────────
+// 버거 테스트
+// ─────────────────────────────────────────────
+
+describe('buildCardSummary — 버거 브랜드', () => {
+  it('happy path: 버거·사이드·음료/쿠폰 순으로 요약을 생성한다', () => {
+    const options: ComboOption[] = [
+      sel('사이드', '감자튀김', 0),
+      sel('쿠폰', '앱쿠폰', 0),
+    ];
+
+    const result = buildCardSummary({
+      brandSlug: 'burgerking',
+      menuName: '와퍼',
+      variantName: '세트',
+      options,
+    });
+
+    expect(result).toBe('와퍼 세트 · 감자튀김 · 앱쿠폰');
+  });
+
+  it('맥도날드 단품은 변형명을 생략하고 사이드와 음료만 붙인다', () => {
+    const options: ComboOption[] = [
+      sel('감자튀김', '후렌치후라이', 0),
+      sel('음료', '제로콜라', 0),
+    ];
+
+    const result = buildCardSummary({
+      brandSlug: 'mcdonalds',
+      menuName: '빅맥',
+      variantName: '단품',
+      options,
+    });
+
+    expect(result).toBe('빅맥 · 후렌치후라이 · 제로콜라');
   });
 });
 

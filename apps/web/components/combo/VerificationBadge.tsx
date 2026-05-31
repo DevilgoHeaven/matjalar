@@ -2,12 +2,16 @@ interface VerificationBadgeProps {
   priceStatus: string;
   lastVerifiedAt?: string | null;
   reviewCount?: number;
+  sourceCount?: number;
+  lastSourceObservedAt?: string | null;
 }
 
 export function VerificationBadge({
   priceStatus,
   lastVerifiedAt,
   reviewCount,
+  sourceCount,
+  lastSourceObservedAt,
 }: VerificationBadgeProps) {
   const status = getPriceStatus(priceStatus);
 
@@ -24,6 +28,16 @@ export function VerificationBadge({
       {typeof reviewCount === 'number' ? (
         <span className="rounded-full bg-white/75 px-2.5 py-1 text-action/70 ring-1 ring-stone-200">
           후기 {new Intl.NumberFormat('ko-KR').format(reviewCount)}
+        </span>
+      ) : null}
+      {typeof sourceCount === 'number' && sourceCount > 0 ? (
+        <span className="rounded-full bg-white/75 px-2.5 py-1 text-action/70 ring-1 ring-stone-200">
+          출처 {new Intl.NumberFormat('ko-KR').format(sourceCount)}건
+        </span>
+      ) : null}
+      {lastSourceObservedAt ? (
+        <span className="rounded-full bg-white/75 px-2.5 py-1 text-action/70 ring-1 ring-stone-200">
+          출처 확인 {formatDate(lastSourceObservedAt)}
         </span>
       ) : null}
     </div>
