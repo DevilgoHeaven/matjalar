@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { buildComboPersonality } from '@mzr/db';
 import type { PublicCombo } from '@/lib/combo/public-combos';
 import { trackEvent } from '@/lib/analytics/events';
+import { ComboVisual } from '@/components/combo/ComboVisual';
 import { QUIZ_PREFERENCES, type QuizPreference } from './preferences';
 
 interface QuizClientProps {
@@ -44,16 +46,13 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
     const labels = QUIZ_PREFERENCES.filter((item) => selected.has(item.id))
       .map((item) => item.label)
       .join(', ');
-    const text = `내 맛잘알 결과: ${labels}\n추천은 ${primary.title}\n${url}`;
+    const personality = comboPersonality(primary);
+    const text = `내 맛잘알 결과: ${labels}\n${personality.shareText}\n추천은 ${primary.title}\n${url}`;
 
     try {
       let channel: 'native' | 'clipboard' | 'fallback' = 'fallback';
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({
-          title: '맛잘알 취향 결과',
-          text,
-          url,
-        });
+        await navigator.share({ title: '맛잘알 취향 결과', text, url });
         setMessage('공유창을 열었어요.');
         channel = 'native';
       } else {
@@ -87,7 +86,17 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
   return (
     <div className="grid gap-5">
       <section className="rounded-lg border border-stone-200 bg-white p-4">
-        <h2 className="text-base font-black text-action">오늘의 기준</h2>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black tracking-widest text-stone-500">
+              TASTE PICKER
+            </p>
+            <h2 className="mt-1 text-lg font-black text-action">오늘의 기준</h2>
+          </div>
+          <p className="break-keep text-xs font-bold text-stone-500">
+            여러 개 골라도 됩니다
+          </p>
+        </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {QUIZ_PREFERENCES.map((preference) => {
             const active = selected.has(preference.id);
@@ -121,9 +130,12 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
 
       <section className="grid gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xs font-black tracking-widest text-stone-500">
-            추천 결과
-          </h2>
+          <div>
+            <p className="text-xs font-black tracking-widest text-stone-500">
+              SHARE RESULT
+            </p>
+            <h2 className="mt-1 text-lg font-black text-action">친구에게 보낼 추천</h2>
+          </div>
           <button
             type="button"
             disabled={!primary}
@@ -135,41 +147,62 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
         </div>
 
         {results.length ? (
-          results.map((combo, index) => (
-            <Link
-              key={combo.id}
-              href={`/combo/${combo.id}`}
-              className="rounded-lg border border-stone-200 bg-white p-4 transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-black tracking-widest text-stone-500">
-                    추천 {index + 1} · {combo.brand.name}
-                  </p>
-                  <h3 className="mt-1 text-base font-black leading-snug text-action">
-                    {combo.title}
-                  </h3>
-                  <p className="mt-1 line-clamp-2 text-sm font-semibold leading-relaxed text-stone-600">
-                    {combo.cardSummary}
-                  </p>
+          results.map((combo, index) => {
+            const personality = comboPersonality(combo);
+            return (
+              <Link
+                key={combo.id}
+                href={`/combo/${combo.id}`}
+                className="group overflow-hidden rounded-lg border border-stone-200 bg-white transition hover:-translate-y-0.5 hover:border-stone-500 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+              >
+                <div className="grid sm:grid-cols-[156px_1fr]">
+                  <ComboVisual
+                    personality={personality}
+                    title={combo.title}
+                    className="aspect-[16/10] rounded-none sm:aspect-auto sm:h-full sm:w-full"
+                  />
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-black tracking-widest text-stone-500">
+                          추천 {index + 1} · {combo.brand.name}
+                        </p>
+                        <h3 className="mt-1 text-base font-black leading-snug text-action">
+                          {combo.title}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm font-semibold leading-relaxed text-stone-600">
+                          {combo.cardSummary}
+                        </p>
+                      </div>
+                      <p className="shrink-0 text-right text-sm font-black text-action">
+                        {formatPrice(combo.estimatedPrice, combo.priceStatus)}
+                      </p>
+                    </div>
+                    <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-stone-700">
+                      {personality.shareText}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600">
+                        {personality.badgeLabel}
+                      </span>
+                      {combo.tags.map((tag) => (
+                        <span
+                          key={tag.label}
+                          className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600"
+                        >
+                          {tag.emoji ? `${tag.emoji} ` : ''}
+                          {tag.label}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-4 text-xs font-black text-action underline-offset-4 group-hover:underline">
+                      주문문 보기
+                    </p>
+                  </div>
                 </div>
-                <p className="shrink-0 text-right text-sm font-black text-action">
-                  {formatPrice(combo.estimatedPrice, combo.priceStatus)}
-                </p>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {combo.tags.map((tag) => (
-                  <span
-                    key={tag.label}
-                    className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600"
-                  >
-                    {tag.emoji ? `${tag.emoji} ` : ''}
-                    {tag.label}
-                  </span>
-                ))}
-              </div>
-            </Link>
-          ))
+              </Link>
+            );
+          })
         ) : (
           <div className="rounded-lg border border-dashed border-stone-300 bg-white p-6 text-center">
             <p className="break-keep text-base font-black text-action">
@@ -187,6 +220,17 @@ export function QuizClient({ combos, initialPreferences }: QuizClientProps) {
       </section>
     </div>
   );
+}
+
+function comboPersonality(combo: PublicCombo) {
+  return buildComboPersonality({
+    title: combo.title,
+    cardSummary: combo.cardSummary,
+    estimatedPrice: combo.estimatedPrice,
+    priceStatus: combo.priceStatus,
+    tagLabels: combo.tags.map((tag) => tag.label),
+    tagSlugs: combo.tagSlugs,
+  });
 }
 
 function rankQuizCombos(combos: PublicCombo[], selected: Set<QuizPreference>) {

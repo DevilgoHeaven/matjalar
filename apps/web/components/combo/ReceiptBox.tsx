@@ -24,9 +24,14 @@ export function ReceiptBox({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-            Receipt
+            Price Check
           </p>
-          <h2 className="mt-1 text-lg font-bold text-action">주문 영수증</h2>
+          <h2 className="mt-1 text-lg font-bold text-action">예상 결제 내역</h2>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-stone-500">
+            {priceStatus === 'exact'
+              ? '공식가 기준으로 계산했습니다.'
+              : '매장·앱 가격이 다를 수 있어 결제 전 한 번 더 확인해 주세요.'}
+          </p>
         </div>
         <p className="text-right text-sm font-semibold text-action">
           {formatPrice(estimatedPrice, priceStatus)}

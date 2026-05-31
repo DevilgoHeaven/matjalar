@@ -24,7 +24,7 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
   return (
     <main className="min-h-dvh bg-[#FAFAFA]">
       <PageEvents events={[{ type: 'page_view', pathname: '/quiz' }]} />
-      <header className="border-b border-stone-200 bg-white">
+      <header className="border-b border-stone-200 bg-[#FFF8F1]">
         <div className="mx-auto max-w-3xl px-5 py-6">
           <Link
             href="/"
@@ -32,11 +32,15 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
           >
             맛잘알
           </Link>
-          <h1 className="mt-4 break-keep text-3xl font-black leading-tight text-action">
-            오늘 뭐 먹을지 3초 컷
+          <p className="mt-4 w-fit rounded-full bg-white px-3 py-1 text-xs font-black text-action ring-1 ring-stone-200">
+            결과 링크까지 바로 공유
+          </p>
+          <h1 className="mt-3 break-keep text-4xl font-black leading-tight text-action sm:text-5xl">
+            <span className="block">오늘 뭐 먹을지</span>
+            <span className="block">3초 컷</span>
           </h1>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-stone-600">
-            기준을 고르면 바로 주문 가능한 조합을 추천해요.
+          <p className="mt-3 max-w-2xl break-keep text-base font-semibold leading-relaxed text-stone-700">
+            가격, 매운맛, 든든함 같은 기준을 고르면 친구에게 보낼 추천 카드까지 바로 만듭니다.
           </p>
         </div>
       </header>

@@ -21,6 +21,14 @@ export type { PriceOption } from './lib/combo-price';
 export { buildComboSignature } from './lib/combo-signature';
 export type { SignatureOption } from './lib/combo-signature';
 
+// 조합 카드/공유/주문 보조용 성격 추론
+export { buildComboPersonality } from './lib/combo-personality';
+export type {
+  ComboMood,
+  ComboPersonality,
+  ComboPersonalityInput,
+} from './lib/combo-personality';
+
 // 관리자 성장 분석 집계
 export { computeAdminAnalytics } from './lib/admin-analytics';
 export type {

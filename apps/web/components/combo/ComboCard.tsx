@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { buildComboPersonality } from '@mzr/db';
 import type { BrandListCombo } from '@/app/brand/[slug]/data';
+import { ComboVisual } from './ComboVisual';
 import { VerificationBadge } from './VerificationBadge';
 
 interface ComboCardProps {
@@ -12,52 +14,82 @@ interface ComboCardProps {
 }
 
 export function ComboCard({ combo, brand }: ComboCardProps) {
+  const personality = buildComboPersonality({
+    title: combo.title,
+    cardSummary: combo.cardSummary,
+    estimatedPrice: combo.estimatedPrice,
+    priceStatus: combo.priceStatus,
+    tagLabels: combo.tags.map((tag) => tag.label),
+  });
+
   return (
     <Link
       href={`/combo/${combo.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 transition hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+      className="group block overflow-hidden rounded-lg border border-stone-200 bg-white transition hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          {brand ? (
-            <p className="mb-1 text-[11px] font-bold tracking-wide text-stone-500">
-              {brand.name}
+      <div className="grid gap-0 sm:grid-cols-[176px_1fr]">
+        <ComboVisual
+          personality={personality}
+          title={combo.title}
+          className="aspect-[16/10] rounded-none sm:aspect-auto sm:h-full sm:min-h-44 sm:w-full"
+        />
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              {brand ? (
+                <p className="mb-1 text-[11px] font-bold tracking-wide text-stone-500">
+                  {brand.name}
+                </p>
+              ) : null}
+              <h2 className="text-base font-extrabold leading-snug text-action">
+                {combo.title}
+              </h2>
+              <p className="mt-1 line-clamp-2 text-sm font-semibold leading-relaxed text-gray-600">
+                {combo.cardSummary}
+              </p>
+            </div>
+            <p className="shrink-0 text-right text-sm font-black text-action">
+              {formatPrice(combo.estimatedPrice, combo.priceStatus)}
             </p>
-          ) : null}
-          <h2 className="text-base font-extrabold leading-snug text-action">
-            {combo.title}
-          </h2>
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-600">
-            {combo.cardSummary}
+          </div>
+
+          <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-stone-700">
+            {personality.appetiteLine}
           </p>
-        </div>
-        <p className="shrink-0 text-right text-sm font-bold text-action">
-          {formatPrice(combo.estimatedPrice, combo.priceStatus)}
-        </p>
-      </div>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-stone-500">
+            {personality.situation}
+          </p>
 
-      <div className="mt-3">
-        <VerificationBadge priceStatus={combo.priceStatus} />
-      </div>
+          <div className="mt-3">
+            <VerificationBadge priceStatus={combo.priceStatus} />
+          </div>
 
-      {combo.tags.length ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {combo.tags.map((tag) => (
-            <span
-              key={tag.label}
-              className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600"
-            >
-              {tag.emoji ? `${tag.emoji} ` : ''}
-              {tag.label}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600">
+              {personality.badgeLabel}
             </span>
-          ))}
-        </div>
-      ) : null}
+            {combo.tags.map((tag) => (
+              <span
+                key={tag.label}
+                className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600"
+              >
+                {tag.emoji ? `${tag.emoji} ` : ''}
+                {tag.label}
+              </span>
+            ))}
+          </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-gray-500">
-        <span>따봉 {formatNumber(combo.stats.voteCount)}</span>
-        <span>별점 {combo.stats.averageRating.toFixed(1)}</span>
-        <span>후기 {formatNumber(combo.stats.reviewCount)}</span>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-gray-500">
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              <span>따봉 {formatNumber(combo.stats.voteCount)}</span>
+              <span>별점 {combo.stats.averageRating.toFixed(1)}</span>
+              <span>후기 {formatNumber(combo.stats.reviewCount)}</span>
+            </div>
+            <span className="font-black text-action underline-offset-4 group-hover:underline">
+              주문 보기
+            </span>
+          </div>
+        </div>
       </div>
     </Link>
   );

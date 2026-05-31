@@ -11,10 +11,14 @@
  */
 
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { buildComboPersonality } from '@mzr/db';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { ComboCard } from '@/components/combo/ComboCard';
+import { ComboVisual } from '@/components/combo/ComboVisual';
 import { CategoryTile } from '@/components/home/CategoryTile';
+import type { HomeHotCombo } from './data';
 import { getHomePageData } from './data';
 
 export const metadata: Metadata = {
@@ -50,13 +54,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         ]}
       />
 
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto max-w-3xl px-5 py-6">
+      <header className="border-b border-stone-200 bg-[#FFF8F1]">
+        <div className="mx-auto max-w-5xl px-5 py-6 sm:py-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-action">
+              <p className="text-2xl font-black tracking-tight text-action">
                 맛잘알
-              </h1>
+              </p>
               <p className="mt-1 text-sm font-medium leading-relaxed text-stone-500">
                 <span className="block break-keep sm:inline">
                   프랜차이즈 꿀조합 카드
@@ -88,26 +92,45 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             </nav>
           </div>
 
-          <form action="/search" method="get" className="mt-5 flex gap-2">
-            <label htmlFor="home-search" className="sr-only">
-              조합 검색
-            </label>
-            <input
-              id="home-search"
-              name="q"
-              type="search"
-              maxLength={80}
-              autoComplete="off"
-              placeholder="조합·메뉴·옵션 검색 (예: BMT, 사웨)"
-              className="min-h-12 min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-4 text-sm font-medium placeholder:text-stone-400 focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
-            />
-            <button
-              type="submit"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-action px-4 text-sm font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-            >
-              검색
-            </button>
-          </form>
+          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+            <div>
+              <h1 className="max-w-2xl break-keep text-4xl font-black leading-tight text-action sm:text-5xl">
+                오늘 뭐 먹을지 30초 안에 끝내기
+              </h1>
+              <p className="mt-4 max-w-xl break-keep text-base font-semibold leading-relaxed text-stone-700">
+                메뉴판 앞에서 멈추지 않게, 맛·가격·주문문까지 바로 이어지는 조합만 모았습니다.
+              </p>
+
+              <form action="/search" method="get" className="mt-6 flex gap-2">
+                <label htmlFor="home-search" className="sr-only">
+                  조합 검색
+                </label>
+                <input
+                  id="home-search"
+                  name="q"
+                  type="search"
+                  maxLength={80}
+                  autoComplete="off"
+                  placeholder="조합·메뉴·옵션 검색 (예: BMT, 사웨)"
+                  className="min-h-12 min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-4 text-sm font-medium placeholder:text-stone-400 focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex min-h-12 items-center justify-center rounded-lg bg-action px-4 text-sm font-black text-white transition hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+                >
+                  검색
+                </button>
+              </form>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <HeroLink href="/rankings/budget">만원컷 보기</HeroLink>
+                <HeroLink href="/quiz">내 취향 찾기</HeroLink>
+                <HeroLink href="/rankings/spicy">매운맛 랭킹</HeroLink>
+              </div>
+            </div>
+
+            <HeroCombo combo={data.hotCombos[0] ?? null} />
+          </div>
         </div>
       </header>
 
@@ -131,10 +154,23 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </section>
       )}
 
-      <section className="mx-auto max-w-3xl px-5 py-6">
-        <h2 className="mb-3 text-xs font-bold tracking-widest text-stone-500">
-          카테고리
-        </h2>
+      <section className="mx-auto max-w-5xl px-5 py-6">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-stone-500">
+              CATEGORY
+            </p>
+            <h2 className="mt-1 text-lg font-black text-action">
+              지금 고를 수 있는 프랜차이즈
+            </h2>
+          </div>
+          <Link
+            href="/brand"
+            className="text-xs font-black text-action underline-offset-4 hover:underline"
+          >
+            전체 보기
+          </Link>
+        </div>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
           {data.categories.map((cat) => (
             <CategoryTile key={cat.id} category={cat} />
@@ -142,33 +178,46 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-5 pb-6">
+      <section className="mx-auto max-w-5xl px-5 pb-6">
         <div className="grid gap-2 sm:grid-cols-3">
           <QuickLink
             href="/rankings/budget"
             eyebrow="만원컷"
-            title="가성비 먼저"
-            body="가격 확인중은 빼고 낮은 예상가부터 봅니다."
+            title="오늘 지갑에 맞추기"
+            body="낮은 예상가와 주문 난이도를 같이 봅니다."
           />
           <QuickLink
             href="/rankings/beginner"
             eyebrow="초보추천"
-            title="주문 실패 줄이기"
-            body="처음이어도 덜 헤매는 안전 조합만 모았어요."
+            title="처음이어도 덜 헤매기"
+            body="소스와 옵션이 과하지 않은 조합만 먼저 봅니다."
           />
           <QuickLink
             href="/quiz"
             eyebrow="취향퀴즈"
-            title="내 조합 찾기"
-            body="3초 선택으로 친구에게 보낼 결과를 만듭니다."
+            title="친구에게 보낼 결과 만들기"
+            body="3초 선택으로 오늘의 조합을 뽑고 바로 공유합니다."
           />
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-5 pb-12 pt-2">
-        <h2 className="mb-4 text-lg font-black text-action">
-          오늘의 인기 조합
-        </h2>
+      <section className="mx-auto max-w-5xl px-5 pb-12 pt-2">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-stone-500">
+              HOT COMBOS
+            </p>
+            <h2 className="mt-1 text-2xl font-black text-action">
+              오늘 바로 먹기 좋은 조합
+            </h2>
+          </div>
+          <Link
+            href="/rankings/hot"
+            className="text-xs font-black text-action underline-offset-4 hover:underline"
+          >
+            랭킹 보기
+          </Link>
+        </div>
         {data.hotCombos.length > 0 ? (
           <div className="grid gap-3">
             {data.hotCombos.map((combo) => (
@@ -198,6 +247,69 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         )}
       </section>
     </main>
+  );
+}
+
+function HeroCombo({ combo }: { combo: HomeHotCombo | null }) {
+  if (!combo) {
+    return (
+      <div className="rounded-lg border border-dashed border-stone-300 bg-white/70 p-4">
+        <p className="text-sm font-black text-action">대표 조합 준비중</p>
+        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-stone-500">
+          첫 인기 조합이 생기면 여기서 바로 주문문까지 보여줍니다.
+        </p>
+      </div>
+    );
+  }
+
+  const personality = buildComboPersonality({
+    title: combo.title,
+    cardSummary: combo.cardSummary,
+    estimatedPrice: combo.estimatedPrice,
+    priceStatus: combo.priceStatus,
+  });
+
+  return (
+    <Link
+      href={`/combo/${combo.id}`}
+      className="group block overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-stone-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+    >
+      <ComboVisual
+        personality={personality}
+        title={combo.title}
+        className="aspect-[16/10] rounded-none"
+      />
+      <div className="p-4">
+        <p className="text-[11px] font-black tracking-widest text-stone-500">
+          지금 많이 보는 조합 · {combo.brand.name}
+        </p>
+        <h2 className="mt-2 break-keep text-xl font-black leading-tight text-action">
+          {combo.title}
+        </h2>
+        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-stone-600">
+          {personality.reason}
+        </p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="text-sm font-black text-action">
+            {formatPrice(combo.estimatedPrice, combo.priceStatus)}
+          </span>
+          <span className="text-xs font-black text-action underline-offset-4 group-hover:underline">
+            주문문 보기
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function HeroLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-10 items-center rounded-full border border-stone-300 bg-white/80 px-3 text-xs font-black text-action transition hover:border-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -239,6 +351,12 @@ function EmptyHotState() {
       </p>
     </div>
   );
+}
+
+function formatPrice(value: number, status: string) {
+  if (status === 'unknown') return '가격 확인중';
+  const price = `${new Intl.NumberFormat('ko-KR').format(value)}원`;
+  return status === 'exact' ? price : `약 ${price}`;
 }
 
 /**

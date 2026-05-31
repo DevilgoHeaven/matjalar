@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { ComboCard } from '@/components/combo/ComboCard';
+import { RankingShareButton } from '@/components/rankings/RankingShareButton';
 import {
   RANKING_DEFINITIONS,
   type RankingKind,
@@ -26,20 +27,32 @@ export function RankingsView({ data, pathname }: RankingsViewProps) {
         ]}
       />
 
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto max-w-3xl px-5 py-6">
+      <header className="border-b border-stone-200 bg-[#FFF8F1]">
+        <div className="mx-auto max-w-5xl px-5 py-6">
           <Link
             href="/"
             className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-bold text-stone-500 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
           >
             맛잘알
           </Link>
-          <h1 className="mt-4 break-keep text-3xl font-black leading-tight text-action">
-            {data.definition.title}
-          </h1>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-stone-600">
-            {data.definition.description}
-          </p>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="w-fit rounded-full bg-white px-3 py-1 text-xs font-black text-action ring-1 ring-stone-200">
+                {data.combos.length}개 조합 바로 고르기
+              </p>
+              <h1 className="mt-3 break-keep text-4xl font-black leading-tight text-action sm:text-5xl">
+                {data.definition.title}
+              </h1>
+              <p className="mt-3 max-w-2xl break-keep text-base font-semibold leading-relaxed text-stone-700">
+                {data.definition.description}
+              </p>
+            </div>
+            <RankingShareButton
+              rankingKind={data.kind}
+              title={data.definition.title}
+              description={data.definition.description}
+            />
+          </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {(Object.keys(RANKING_DEFINITIONS) as RankingKind[]).map((kind) => {
               const active = kind === data.kind;
@@ -61,7 +74,7 @@ export function RankingsView({ data, pathname }: RankingsViewProps) {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-3xl gap-3 px-5 py-6">
+      <section className="mx-auto grid max-w-5xl gap-3 px-5 py-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xs font-black tracking-widest text-stone-500">
             {data.combos.length}개 조합

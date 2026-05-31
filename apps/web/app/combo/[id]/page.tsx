@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { buildComboPersonality } from '@mzr/db';
 import { notFound } from 'next/navigation';
 import { CATEGORY_TOKENS } from '@mzr/ui';
 import { PageEvents } from '@/components/analytics/PageEvents';
 import { BookmarkButton } from '@/components/combo/BookmarkButton';
 import { ComboSharePanel } from '@/components/combo/ComboSharePanel';
+import { ComboVisual } from '@/components/combo/ComboVisual';
 import { CorrectionReportPanel } from '@/components/combo/CorrectionReportPanel';
 import { FeaturedReview } from '@/components/combo/FeaturedReview';
+import { OrderAssistPanel } from '@/components/combo/OrderAssistPanel';
 import { ReportButton } from '@/components/combo/ReportButton';
 import { ReceiptBox } from '@/components/combo/ReceiptBox';
 import { ReviewForm } from '@/components/combo/ReviewForm';
@@ -73,6 +76,12 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
   };
   const orderText = buildOrderScript(orderInput);
   const orderSummary = buildOrderSummary(orderInput);
+  const personality = buildComboPersonality({
+    title: combo.title,
+    cardSummary: combo.cardSummary,
+    estimatedPrice: combo.estimatedPrice,
+    priceStatus: combo.priceStatus,
+  });
 
   return (
     <main className="min-h-dvh bg-[#FAFAFA]">
@@ -88,54 +97,68 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
           background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`,
         }}
       >
-        <div className="mx-auto max-w-2xl">
-          <Link
-            href={`/brand/${combo.brand.slug}`}
-            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-action/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-          >
-            {combo.brand.name}
-          </Link>
-          <h1 className="mt-5 text-3xl font-black leading-tight text-action sm:text-4xl">
-            {combo.title}
-          </h1>
-          <p className="mt-3 max-w-xl text-base font-medium leading-relaxed text-action/75">
-            {combo.cardSummary}
-          </p>
+        <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_380px] lg:items-end">
+          <div>
+            <Link
+              href={`/brand/${combo.brand.slug}`}
+              className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-action/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
+            >
+              {combo.brand.name}
+            </Link>
+            <p className="mt-4 w-fit rounded-full bg-white/70 px-3 py-1 text-xs font-black text-action ring-1 ring-black/5">
+              {personality.situation}
+            </p>
+            <h1 className="mt-4 break-keep text-4xl font-black leading-tight text-action sm:text-5xl">
+              {combo.title}
+            </h1>
+            <p className="mt-3 max-w-2xl break-keep text-lg font-bold leading-relaxed text-action/80">
+              {personality.appetiteLine}
+            </p>
+            <p className="mt-2 max-w-2xl break-keep text-sm font-semibold leading-relaxed text-action/65">
+              {combo.cardSummary}
+            </p>
 
-          <div className="mt-4">
-            <VerificationBadge
-              priceStatus={combo.priceStatus}
-              lastVerifiedAt={combo.brand.lastVerifiedAt}
-              reviewCount={combo.stats.reviewCount}
-              sourceCount={combo.sourceSummary.count}
-              lastSourceObservedAt={combo.sourceSummary.lastObservedAt}
-            />
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <VoteButton
-              comboId={combo.id}
-              initialVoted={combo.viewer.hasVoted}
-              initialVoteCount={combo.stats.voteCount}
-              isSignedIn={combo.viewer.isSignedIn}
-            />
-            <BookmarkButton
-              comboId={combo.id}
-              initialBookmarked={combo.viewer.hasBookmarked}
-              initialBookmarkCount={combo.stats.bookmarkCount}
-              isSignedIn={combo.viewer.isSignedIn}
-            />
-            <div className="flex min-h-11 items-center gap-3 rounded-full bg-white/70 px-4 text-sm font-semibold text-action">
-              <span>별점 {combo.stats.averageRating.toFixed(1)}</span>
-              <span className="h-4 w-px bg-action/20" />
-              <span>후기 {combo.stats.reviewCount}</span>
+            <div className="mt-4">
+              <VerificationBadge
+                priceStatus={combo.priceStatus}
+                lastVerifiedAt={combo.brand.lastVerifiedAt}
+                reviewCount={combo.stats.reviewCount}
+                sourceCount={combo.sourceSummary.count}
+                lastSourceObservedAt={combo.sourceSummary.lastObservedAt}
+              />
             </div>
-            <ReportButton
-              targetType="combo"
-              targetId={combo.id}
-              isSignedIn={combo.viewer.isSignedIn}
-            />
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <VoteButton
+                comboId={combo.id}
+                initialVoted={combo.viewer.hasVoted}
+                initialVoteCount={combo.stats.voteCount}
+                isSignedIn={combo.viewer.isSignedIn}
+              />
+              <BookmarkButton
+                comboId={combo.id}
+                initialBookmarked={combo.viewer.hasBookmarked}
+                initialBookmarkCount={combo.stats.bookmarkCount}
+                isSignedIn={combo.viewer.isSignedIn}
+              />
+              <div className="flex min-h-11 items-center gap-3 rounded-full bg-white/70 px-4 text-sm font-semibold text-action">
+                <span>별점 {combo.stats.averageRating.toFixed(1)}</span>
+                <span className="h-4 w-px bg-action/20" />
+                <span>후기 {combo.stats.reviewCount}</span>
+              </div>
+              <ReportButton
+                targetType="combo"
+                targetId={combo.id}
+                isSignedIn={combo.viewer.isSignedIn}
+              />
+            </div>
           </div>
+
+          <ComboVisual
+            personality={personality}
+            title={combo.title}
+            className="aspect-[16/11] shadow-sm ring-1 ring-black/5"
+          />
         </div>
       </section>
 
@@ -145,6 +168,15 @@ export default async function ComboDetailPage({ params }: ComboPageProps) {
           title={combo.title}
           orderText={orderText}
           orderSummary={orderSummary}
+          shareText={personality.shareText}
+        />
+
+        <OrderAssistPanel
+          personality={personality}
+          orderText={orderText}
+          orderSummary={orderSummary}
+          priceStatus={combo.priceStatus}
+          sourceCount={combo.sourceSummary.count}
         />
 
         <ReceiptBox

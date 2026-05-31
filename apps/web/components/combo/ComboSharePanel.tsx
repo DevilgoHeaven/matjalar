@@ -8,6 +8,7 @@ interface ComboSharePanelProps {
   title: string;
   orderText: string;
   orderSummary: string;
+  shareText: string;
 }
 
 type ShareState = 'idle' | 'copied' | 'shared' | 'fallback';
@@ -17,6 +18,7 @@ export function ComboSharePanel({
   title,
   orderText,
   orderSummary,
+  shareText,
 }: ComboSharePanelProps) {
   const [state, setState] = useState<ShareState>('idle');
   const [isBusy, setIsBusy] = useState(false);
@@ -41,11 +43,11 @@ export function ComboSharePanel({
 
   async function shareCombo() {
     setIsBusy(true);
-    const text = `${title}\n${orderSummary}\n${shareUrl}`;
+    const text = `${shareText}\n${title}\n${orderSummary}\n${shareUrl}`;
     setFallbackText(text);
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title, text: orderSummary, url: shareUrl });
+        await navigator.share({ title, text: `${shareText}\n${orderSummary}`, url: shareUrl });
         void trackEvent({
           type: 'share_click',
           target_type: 'combo',
@@ -83,9 +85,9 @@ export function ComboSharePanel({
     <section className="rounded-lg border border-stone-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="text-base font-black text-action">주문 치트키</h2>
+          <h2 className="text-base font-black text-action">친구에게 보낼 주문 치트키</h2>
           <p className="mt-1 break-keep text-sm leading-relaxed text-stone-600">
-            {orderSummary}
+            {shareText}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-black text-stone-600">
@@ -94,8 +96,11 @@ export function ComboSharePanel({
       </div>
 
       <div className="mt-4 rounded-md bg-stone-50 p-3 text-sm font-semibold leading-relaxed text-action">
-        {orderText.split('\n').map((line) => (
-          <p key={line}>{line}</p>
+        <p className="mb-2 text-xs font-black tracking-widest text-stone-500">
+          주문문
+        </p>
+        {orderText.split('\n').map((line, index) => (
+          <p key={`${index}-${line}`}>{line}</p>
         ))}
       </div>
 
